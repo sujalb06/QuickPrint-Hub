@@ -3,11 +3,11 @@
 
 /* Color Variables */
 :root {
-    --primary: #0ea5e9;       /* Brand Blue */
+    --primary: #0ea5e9;
     --primary-hover: #0284c7;
-    --success: #10b981;       /* Secure Green */
+    --success: #10b981;
     --success-hover: #059669;
-    --bg-color: #f1f5f9;      /* Light Slate Background */
+    --bg-color: #f1f5f9;
     --card-bg: #ffffff;
     --text-main: #0f172a;
     --text-muted: #64748b;
@@ -26,7 +26,7 @@
 body {
     background-color: var(--bg-color);
     background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-    background-size: 30px 30px; /* Subtle dot pattern background */
+    background-size: 30px 30px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -58,7 +58,6 @@ body {
 .logo-icon {
     font-size: 3rem;
     margin-bottom: 10px;
-    /* animation: float 3s ease-in-out infinite; */
 }
 
 .logo-container h1 {
@@ -131,7 +130,7 @@ body {
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
-/* Phone Number Special Wrapper */
+/* Phone Number Wrapper */
 .phone-input-wrapper {
     display: flex;
     border: 1.5px solid var(--border-color);
@@ -158,7 +157,42 @@ body {
     border: none;
     border-radius: 0;
     margin: 0;
-    box-shadow: none !important; /* Override normal focus */
+    box-shadow: none !important;
+}
+
+/* ---------------- User Code Input (NEW) ---------------- */
+/* OTP ki jagah yeh campus code wala input aaya hai */
+.code-input-wrapper {
+    display: flex;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.code-input-wrapper:focus-within {
+    border-color: var(--success);           /* Green glow — secure feel */
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Key icon wala left part */
+.code-icon {
+    background: #f0fdf4;                    /* Halka green background */
+    padding: 12px 14px;
+    font-size: 1rem;
+    border-right: 1.5px solid var(--border-color);
+    display: flex;
+    align-items: center;
+}
+
+/* Input box andar */
+.code-input-wrapper input {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none !important;
+    letter-spacing: 2px;                    /* Code ke characters ke beech thodi space */
+    font-weight: 600;
 }
 
 .help-text {
@@ -199,9 +233,7 @@ body {
     box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
 }
 
-.w-100 {
-    width: 100%;
-}
+.w-100 { width: 100%; }
 
 /* ---------------- Footer & Utilities ---------------- */
 .secure-footer {
@@ -221,27 +253,23 @@ body {
     display: none !important;
 }
 
-/* Floating animation for the printer icon */
+/* Floating animation */
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-8px); }
     100% { transform: translateY(0px); }
 }
 
 
-
-
 /* ============================================================
-   MOBILE RESPONSIVE — Login page ke liye (max 480px)
+   MOBILE RESPONSIVE — Login page (max 480px)
    ============================================================ */
 @media (max-width: 480px) {
 
-    /* Card ki padding kam karo — mobile pe zyada side space nahi hoti */
     .login-card {
         padding: 28px 20px;
     }
 
-    /* Logo thoda chota */
     .logo-icon {
         font-size: 2.2rem;
     }
@@ -250,13 +278,11 @@ body {
         font-size: 1.3rem;
     }
 
-    /* Tab buttons touch-friendly bade karo */
     .tab-btn {
         padding: 10px 8px;
         font-size: 0.88rem;
     }
 
-    /* Buttons bade aur easy to tap */
     .btn {
         padding: 13px;
         font-size: 0.95rem;

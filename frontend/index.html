@@ -16,19 +16,22 @@
                 <h1>QuickPrint Hub</h1>
                 <p>Skip the queue, print smarter.</p>
             </div>
-
+ 
+            <!-- Role Tabs: Student ya Shopkeeper -->
             <div class="role-tabs">
                 <button type="button" class="tab-btn active" id="userTab" onclick="switchRole('user')">Student</button>
                 <button type="button" class="tab-btn" id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
             </div>
-
+ 
             <form id="loginForm" onsubmit="handleLogin(event)">
                 
+                <!-- Full Name -->
                 <div class="input-group">
                     <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" placeholder="E.g. SUJAL" required autocomplete="name">
+                    <input type="text" id="fullName" placeholder="E.g. Sujal" required autocomplete="name">
                 </div>
-
+ 
+                <!-- Phone Number -->
                 <div class="input-group">
                     <label for="phone">Phone Number</label>
                     <div class="phone-input-wrapper">
@@ -36,30 +39,28 @@
                         <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="10-digit mobile number" required autocomplete="tel">
                     </div>
                 </div>
-
-                <div class="input-group hidden" id="otpSection">
-                    <label for="otp">Enter Verification Code</label>
-                    <input type="text" id="otp" placeholder="Enter 4-digit code" maxlength="4" autocomplete="one-time-code">
-                    <!-- <p class="help-text">For testing, use code: <strong>1234</strong></p> -->
+ 
+                <!-- User Code (OTP ki jagah) -->
+                <div class="input-group">
+                    <label for="userCode" id="userCodeLabel">Student Code</label>
+                    <div class="code-input-wrapper">
+                        <span class="code-icon">🔑</span>
+                        <input type="password" id="userCode" placeholder="Enter your campus code" required autocomplete="off">
+                    </div>
+                    <p class="help-text">Use the campus access code shared by your institution.</p>
                 </div>
-
-                <button type="button" class="btn primary-btn w-100" id="reqOtpBtn" onclick="requestOTP()">
-                    Request OTP
-                </button>
-                
-                <button type="submit" class="btn success-btn w-100 hidden" id="loginBtn">
+ 
+                <!-- Login Button -->
+                <button type="submit" class="btn success-btn w-100" id="loginBtn">
                     Verify & Secure Login 🔒
                 </button>
-
+ 
             </form>
             
-            <!-- <div class="secure-footer">
-                <p>🔒 Secured by Medi-Caps University Network</p>
-            </div> -->
         </div>
     </div>
-
+ 
     <script src="login.js"></script>
-
+ 
 </body>
 </html>
