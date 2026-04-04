@@ -150,6 +150,40 @@ app.get('/api/nuke-database', async (req, res) => {
 });
 
 
+
+
+// ==========================================
+// DANGEROUS: SECRET URL TO CLEAR DATABASE 🧹
+// ==========================================
+app.get('/api/clear-db/:secret', async (req, res) => {
+    const userSecret = req.params.secret;
+    
+    // Apna ek lamba/secret password yahan set karo
+    const MY_MASTER_PASSWORD = "medicaps-admin-clear-123";
+
+    if (userSecret !== MY_MASTER_PASSWORD) {
+        return res.status(401).send("<h1>Access Denied! Galat Password. 🛑</h1>");
+    }
+
+    try {
+        // Yahan un Models ka naam likho jinka data udana hai
+        // (Dhyan rakho ki tumne Order ya User model import kiya ho upar)
+        
+        // await User.deleteMany({});   // Agar Users hatane hain toh ye line un-comment karo
+        // await Order.deleteMany({});  // Agar Orders hatane hain toh ye line un-comment karo
+        
+        res.send("<h1>Bhai, Database ekdum chamak gaya! (Cleared Successfully) 🧹✨</h1>");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("<h1>Koi error aa gaya bhai: " + error.message + "</h1>");
+    }
+});
+
+
+
+
+
+
 // ------------------------------------------------------------
 // API 1: LOGIN — Student aur Admin dono ke liye
 // POST /api/login
