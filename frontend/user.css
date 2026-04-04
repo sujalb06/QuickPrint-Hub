@@ -521,12 +521,81 @@ button {
 @media (max-width: 992px) {
     .dashboard-container {
         grid-template-columns: 1fr; /* Single column layout */
+        padding: 16px;
     }
 
     .settings-grid {
         grid-template-columns: 1fr;
     }
 }
+
+/* Mobile size (768px se chota) — navbar aur queue fix */
+@media (max-width: 768px) {
+
+    /* Navbar: logo upar, profile neeche */
+    .navbar {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 5%;
+        text-align: center;
+    }
+
+    /* Nav profile: naam aur logout center me */
+    .nav-profile {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* Queue status items: ek ke neeche ek */
+    .status-details {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Options row (BW/Color, Single/Double): full width */
+    .options-row {
+        gap: 8px;
+    }
+
+    .option-block {
+        padding: 10px 5px;    /* Touch-friendly bada area */
+        font-size: 0.8rem;
+    }
+
+    /* Copies wrapper: stack karo mobile pe */
+    .copies-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .file-price {
+        align-self: flex-end;
+        font-size: 1rem;
+    }
+
+    /* Modal full width on mobile */
+    .modal-content {
+        padding: 24px 16px;
+        width: 95%;
+    }
+}
+
+
+/* Chote phones (480px se chota) */
+@media (max-width: 480px) {
+    .nav-brand h2 {
+        font-size: 1rem;
+    }
+
+    .btn-success {
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
+
+
 
 /* Mobile size (480px se chota) — navbar stack ho jaaye */
 @media (max-width: 480px) {
