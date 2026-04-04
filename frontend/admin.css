@@ -62,7 +62,7 @@ body {
     color: white;
     padding: 16px 5%;
     display: flex;
-    justify-content: space-between;  /* Logo left, clock+buttons right */
+    justify-content: space-between;  /* Logo left, buttons right */
     align-items: center;
     box-shadow: var(--shadow-md);
     position: sticky;                /* Scroll karo toh bhi upar chipka rahe */
@@ -85,9 +85,9 @@ body {
 
 /* Live clock box — transparent white background me */
 /* .clock {
-    font-family: monospace;          Monospace = saare numbers same width
+    font-family: monospace;
     font-size: 1.1rem;
-    background: rgba(255, 255, 255, 0.1); 10% transparent white
+    background: rgba(255, 255, 255, 0.1);
     padding: 6px 12px;
     border-radius: 6px;
     font-weight: 600;
@@ -316,10 +316,10 @@ body {
     font-weight: 700;
 }
 
-.badge-bw     { background: #475569; color: white; }                                /* Dark grey */
-.badge-color  { background: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; } /* Pink */
-.badge-single { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; } /* Blue */
-.badge-double { background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; } /* Green */
+.badge-bw     { background: #475569; color: white; }
+.badge-color  { background: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; }
+.badge-single { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
+.badge-double { background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; }
 
 
 /* ============================================================
@@ -362,7 +362,9 @@ button {
 
 .btn-success:hover { background: var(--success-hover); }
 
-/* Red filled — "Clear History" jaisi dangerous action */
+/* Red filled — "Clear History" jaisi dangerous action
+   FIX: display:flex hataya, gap ki jagah inline spacing use kiya
+   Taaki #clearHistoryBtn pe margin:auto kaam kare */
 .btn-danger {
     background: var(--danger);
     color: white;
@@ -371,9 +373,6 @@ button {
     border-radius: 6px;
     font-weight: 600;
     font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .btn-danger:hover { background: var(--danger-hover); }
@@ -397,7 +396,18 @@ button {
 
 
 /* ============================================================
-   RESPONSIVE — Chote screens ke liye adjustments
+   CLEAR HISTORY BUTTON — Queue section ke neeche, center me
+   FIX: btn-danger se display:flex hataya, yahan block+margin auto lagaya
+   ============================================================ */
+#clearHistoryBtn {
+    display: block;
+    margin: 24px auto 0;         /* Upar se gap, left-right auto = center */
+    min-width: 220px;
+}
+
+
+/* ============================================================
+   RESPONSIVE — Tablet screens ke liye (max 992px)
    ============================================================ */
 @media (max-width: 992px) {
 
@@ -502,7 +512,7 @@ button {
 .badge-qty {
     flex: 1;                   /* Available space equally share karo */
     text-align: center;
-    padding: 8px 0 !important; /* Upar-neeche padding, side auto */
+    padding: 8px 0 !important;
     font-size: 0.85rem !important;
     border-radius: 6px;
     max-width: 90px;           /* Zyada wide na ho */
@@ -537,7 +547,7 @@ button {
     text-decoration: none;                 /* Underline hatao */
     font-size: 0.95rem;
     font-weight: bold;
-    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2); /* Halki blue shadow */
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
     transition: all 0.2s ease;
 }
 
@@ -548,64 +558,75 @@ button {
 }
 
 
-
-/* ========================================= */
-/* 📱 MOBILE RESPONSIVE DESIGN (MAGIC CODE)  */
-/* ========================================= */
+/* ============================================================
+   MOBILE RESPONSIVE — Chote screens ke liye (max 768px)
+   ============================================================ */
 
 @media (max-width: 768px) {
+
+    /* Admin container ka padding kam karo mobile me */
+    .admin-container {
+        padding: 16px !important;
+    }
+
+    /* Orders grid — mobile pe sirf 1 column
+       FIX: minmax(350px) mobile pe overflow karta tha */
+    .orders-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Search bar full width */
+    .queue-filters .form-control {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
     /* 1. Main Order Card ki spacing theek karna */
     .order-card {
-        margin: 10px 5px !important; /* Mobile me left-right space kam karte hain */
+        margin: 10px 5px !important;
         padding: 15px !important;
     }
 
-    /* 2. Badges screen se bahar na bhagein isliye unhe Wrap karna */
+    /* 2. Badges screen se bahar na bhagein isliye unhe wrap karna */
     .file-line-2 {
-        flex-wrap: wrap !important; 
+        flex-wrap: wrap !important;
         gap: 8px !important;
     }
 
-    /* 3. Download Button ko bada aur Thumb-friendly banana */
+    /* 3. Download Button ko bada aur thumb-friendly banana */
     .btn-download-small {
-        width: 100% !important; /* Poori width lega */
+        width: 100% !important;
         text-align: center;
         padding: 12px 0 !important;
         margin-top: 10px !important;
         font-size: 1rem !important;
     }
 
-    /* 4. Footer (Price aur 'Print & Complete' button) ko upar-neeche (Stack) karna */
+    /* 4. Footer (Price aur 'Print & Complete' button) ko stack karna */
     .order-footer {
-        flex-direction: column !important; /* Pehle aaju-baaju the, ab upar-neeche */
+        flex-direction: column !important;
         gap: 15px !important;
-        align-items: stretch !important; 
+        align-items: stretch !important;
     }
 
-    /* 5. Price ko Center karna */
+    /* 5. Price ko center karna */
     .total-bill {
         text-align: center !important;
-        font-size: 1.4rem !important; /* Mobile me price thoda bada dikhega */
+        font-size: 1.4rem !important;
     }
 
-    /* 6. Main Action Button ko Bada karna */
+    /* 6. Complete button ko bada banana */
     .btn-success {
-        width: 100% !important; /* Mobile me button poora chouda (wide) hona chahiye */
+        width: 100% !important;
         padding: 16px !important;
         font-size: 1.1rem !important;
         border-radius: 8px !important;
     }
-}
 
-
-
-/* ========================================= */
-/* CLEAR HISTORY BUTTON POSITIONING          */
-/* ========================================= */
-
-
-#clearHistoryBtn {
-    display: block;
-    margin: 0 auto;
-    margin-top: 3%;
+    /* 7. Clear History button — mobile pe bhi center aur full width */
+    #clearHistoryBtn {
+        width: 90% !important;
+        min-width: unset;
+        margin: 20px auto 0 !important;
+    }
 }
