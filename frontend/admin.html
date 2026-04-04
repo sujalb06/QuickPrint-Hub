@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+        
+        <nav class="navbar admin-navbar">
+        <div class="nav-brand">
+            <h2>🛠️ Admin</h2>
+        </div>
+        <div class="nav-actions">
+            <!-- <span id="liveClock" class="clock">00:00:00</span> -->
+            <button class="btn-danger-outline" onclick="logoutAdmin()">Logout</button>
+        </div>
+    </nav>
+
+    <main class="admin-container">
+        
+        <!-- <header class="dashboard-header">
+            <div>
+                <h1>Shopkeeper Control Panel</h1>
+                <p class="subtitle">Manage today's print queue efficiently.</p>
+            </div>
+            
+        </header> -->
+
+        <section class="stats-row">
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <h2 id="totalOrdersCount">0</h2>
+            </div>
+            <div class="stat-card pending">
+                <h3>Pending Queue</h3>
+                <h2 id="pendingQueueCount">0</h2>
+            </div>
+            <div class="stat-card completed">
+                <h3>Completed Today</h3>
+                <h2 id="completedCount">0</h2>
+            </div>
+        </section>
+
+        <section class="queue-section">
+            <div class="section-heading">
+                <h2>📥 Live Print Queue</h2>
+                <div class="queue-filters">
+                    <input type="text" id="searchOrder" placeholder="Search Order # or Name..." class="form-control">
+                </div>
+            </div>
+
+            <div class="orders-grid" id="ordersContainer">
+                
+                <!-- <div class="order-card">
+                    <div class="order-header">
+                        <span class="order-number">#0001</span>
+                        <span class="order-time">10:30 AM</span>
+                    </div>
+                    <div class="student-info">
+                        <strong>Student:</strong> Rahul Kumar <br>
+                        <strong>Phone:</strong> 9876543210
+                    </div>
+                    <div class="file-details">
+                        <div class="file-item">
+                            <span>📄 Assignment.pdf (5 Pages)</span>
+                            <span class="badge badge-bw">B/W</span>
+                            <span class="badge badge-single">Single</span>
+                        </div>
+                        <div class="file-item">
+                            <span>🖼️ Graph.jpg (1 Page)</span>
+                            <span class="badge badge-color">Color</span>
+                        </div>
+                    </div>
+                    <div class="order-footer">
+                        <span class="total-bill">₹20.00</span>
+                        <button class="btn-success" onclick="markComplete('0001')">Print & Complete ✅</button>
+                    </div>
+                </div> -->
+
+            </div>
+        </section>
+
+
+        <button class="btn-danger" id="clearHistoryBtn" onclick="clearOrderHistory()">
+                🗑️ Clear All Order History
+            </button>
+    </main>
+
+    <script src="admin.js"></script>
+
+</body>
+</html>

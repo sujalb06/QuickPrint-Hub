@@ -1,0 +1,676 @@
+/* ============================================================
+   QUICKPRINT - USER PAGE STYLESHEET
+   Ye file poore student dashboard ka design control karti hai
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   GOOGLE FONTS — Internet se "Inter" font load karo
+   Ye font clean aur modern dikhta hai
+------------------------------------------------------------ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+
+/* ------------------------------------------------------------
+   CSS VARIABLES — Ek jagah se saare colors/sizes control karo
+   Agar color change karna ho toh sirf yahan badlo, baki sab
+   automatically update ho jaayega
+------------------------------------------------------------ */
+:root {
+    --primary: #0ea5e9;               /* Sky Blue — main color */
+    --primary-hover: #0284c7;         /* Sky Blue thoda dark — hover pe */
+    --success: #10b981;               /* Green — success/complete buttons */
+    --success-hover: #059669;         /* Green thoda dark — hover pe */
+    --bg-color: #f8fafc;              /* Page ka background — halka grey */
+    --card-bg: #ffffff;               /* Cards ka background — pure white */
+    --text-main: #0f172a;             /* Main text — almost black */
+    --text-muted: #64748b;            /* Secondary text — grey */
+    --border-color: #e2e8f0;          /* Lines/borders ka color — light grey */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);                              /* Choti shadow */
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); /* Medium shadow */
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);                       /* Badi shadow (modal ke liye) */
+    --radius: 12px;                   /* Cards ke corners ki roundness */
+}
+
+
+/* ------------------------------------------------------------
+   BASE RESET — Browser ki default styling hatao
+   Har browser alag default deta hai, ye sab ko 0 karta hai
+------------------------------------------------------------ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;    /* Width/height me padding count ho, bahar na jaaye */
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.5;          /* Lines ke beech thodi space */
+}
+
+
+/* ============================================================
+   NAVBAR — Upar wali strip
+   ============================================================ */
+.navbar {
+    background-color: var(--card-bg);
+    padding: 16px 5%;               /* Upar-neeche 16px, left-right 5% */
+    display: flex;
+    justify-content: space-between; /* Logo left, profile right */
+    align-items: center;            /* Vertically center */
+    box-shadow: var(--shadow-sm);
+    position: sticky;               /* Scroll karo toh bhi upar chipka rahe */
+    top: 0;
+    z-index: 100;                   /* Sabse upar dikhega, kisi ke peeche nahi */
+}
+
+.nav-brand h2 {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.nav-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;                      /* Naam aur button ke beech gap */
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+
+/* ============================================================
+   MAIN LAYOUT — 2 column grid (left bada, right chota)
+   ============================================================ */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr; /* Left column thoda bada hai */
+    gap: 24px;
+    padding: 30px 5%;
+    max-width: 1400px;
+    margin: 0 auto;                   /* Page ke center me */
+}
+
+
+/* ============================================================
+   CARDS — White boxes jisme content hota hai
+   ============================================================ */
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+/* Card ka heading — neeche ek line hoti hai */
+.card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+
+/* ============================================================
+   LIVE QUEUE CARD — Blue left border wala special card
+   ============================================================ */
+.queue-status-card {
+    background: linear-gradient(to right, #ffffff, #f0f9ff); /* White se light blue gradient */
+    border-left: 4px solid var(--primary);                   /* Left side moti blue line */
+}
+
+/* Queue ke 2 items (orders count + wait time) side by side */
+.status-details {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.status-item {
+    text-align: center;
+}
+
+/* Label — chota grey text */
+.status-item .label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+/* Value — bada bold number */
+.status-item .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Highlight — queue count jo aur bhi bada aur blue hota hai */
+.status-item .highlight {
+    color: var(--primary);
+    font-size: 2rem;
+}
+
+.queue-note {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    margin-top: 10px;
+}
+
+
+/* ============================================================
+   UPLOAD AREA — Dashed border wala file drop zone
+   ============================================================ */
+.upload-area {
+    border: 2px dashed #cbd5e1;     /* Dashed border — dotted jaisa */
+    border-radius: var(--radius);
+    padding: 30px 20px;
+    text-align: center;
+    background: #f8fafc;
+    transition: all 0.3s ease;      /* Hover pe smoothly change hoga */
+}
+
+/* Mouse laane pe border aur background change hoga */
+.upload-area:hover {
+    border-color: var(--primary);
+    background: #f0f9ff;
+}
+
+.upload-area p {
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.file-limits {
+    font-size: 0.8rem;
+    margin-top: 10px;
+}
+
+/* File list (agar koi custom list dikhani ho) */
+.file-list {
+    list-style: none;
+    margin-top: 15px;
+}
+
+.file-list li {
+    background: #f1f5f9;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+
+/* ============================================================
+   FORM ELEMENTS — Inputs aur labels
+   ============================================================ */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+
+/* Text input boxes */
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* Input box click hone pe border blue ho jaata hai */
+.form-control:focus {
+    border-color: var(--primary);
+}
+
+/* 2 column grid settings ke liye */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Radio buttons (select karne wale) */
+.radio-group {
+    display: flex;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+
+/* ============================================================
+   BUTTONS — Saare buttons ka design
+   ============================================================ */
+
+/* Sabse pehle cursor pointer set karo (hand icon) */
+button {
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease; /* Hover pe smooth change */
+}
+
+/* Blue primary button */
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+/* White secondary button */
+.btn-secondary {
+    background: white;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-secondary:hover {
+    background: #f1f5f9;
+}
+
+/* Green success button (Pay/Complete ke liye) */
+.btn-success {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Hover pe thoda upar uthta hai aur shadow aata hai */
+.btn-success:hover {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Red outline button (Logout ke liye) */
+.btn-outline {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-outline:hover {
+    background: #fef2f2; /* Halka red background hover pe */
+}
+
+/* Helper classes */
+.w-100 { width: 100%; }   /* Full width kar do */
+.mt-3 { margin-top: 1rem; } /* Upar thodi space */
+
+
+/* ============================================================
+   CART SECTION — File cards wala area
+   ============================================================ */
+
+/* Cart ka scrollable area */
+.cart-items {
+    min-height: 150px;
+    max-height: 300px;
+    overflow-y: auto; /* Zyada items ho toh scroll karo */
+    margin-bottom: 20px;
+}
+
+/* Jab cart khali ho toh ye message dikhega */
+.empty-cart-msg {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 20px 0;
+}
+
+/* Ek cart item ka box */
+.cart-item {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* File ka naam — zyada lamba ho toh "..." ho jaata hai */
+.cart-item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Lamba text "..." me khatam hoga */
+}
+
+.cart-item-details {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Total amount ka grey box */
+.price-summary {
+    background: #f1f5f9;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Total row — left me label, right me amount */
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Horizontal line (divider) */
+.divider {
+    border: 0;
+    height: 1px;
+    background: var(--border-color);
+    margin: 20px 0;
+}
+
+
+/* ============================================================
+   INFO & WARNING BOXES
+   ============================================================ */
+
+/* Blue left border wala info box (WhatsApp note ke liye) */
+.notification-info {
+    background: #eff6ff;
+    border-left: 3px solid var(--primary);
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Red warning text (no refund note) */
+.secure-note {
+    font-size: 0.75rem;
+    color: #ef4444;
+    text-align: center;
+    margin-top: 12px;
+}
+
+
+/* ============================================================
+   MODAL POPUP — Payment success ke baad dikhne wala popup
+   ============================================================ */
+
+/* Poore screen pe dark transparent overlay */
+.modal {
+    position: fixed;    /* Page scroll karo toh bhi center me rahe */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);  /* 50% transparent black background */
+    backdrop-filter: blur(4px);       /* Peeche ka content blur hoga */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Navbar (100) se bhi upar */
+}
+
+/* "hidden" class hogi toh modal bilkul nahi dikhega */
+.modal.hidden {
+    display: none !important; /* !important se koi aur CSS override nahi kar sakti */
+}
+
+/* White box jo modal ke andar dikhta hai */
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: var(--radius);
+    max-width: 400px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease-out; /* Neeche se upar aata hai */
+}
+
+.text-center { text-align: center; }
+
+/* Bada tick emoji */
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+/* Order number (#0012 jaisa) */
+.order-number {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin: 10px 0;
+    letter-spacing: 2px; /* Letters ke beech thodi space */
+}
+
+.ready-time {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+/* Yellow warning box modal me */
+.warning-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 25px;
+    padding: 10px;
+    background: #fffbeb;          /* Halka yellow */
+    border-radius: 6px;
+    border: 1px solid #fef3c7;
+}
+
+/* Modal ka animation — neeche se slide hoke aata hai */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); } /* Neeche se, transparent */
+    to   { opacity: 1; transform: translateY(0); }    /* Upar, fully visible */
+}
+
+
+/* ============================================================
+   RESPONSIVE DESIGN — Chote screens ke liye adjustments
+   ============================================================ */
+
+/* Tablet size (992px se chota) — 2 column se 1 column */
+@media (max-width: 992px) {
+    .dashboard-container {
+        grid-template-columns: 1fr; /* Single column layout */
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile size (480px se chota) — navbar stack ho jaaye */
+@media (max-width: 480px) {
+    .navbar {
+        flex-direction: column; /* Logo aur profile ek ke neeche ek */
+        gap: 10px;
+    }
+
+    .status-details {
+        flex-direction: column; /* Queue items ek ke neeche ek */
+        gap: 15px;
+    }
+}
+
+
+/* ============================================================
+   FILE SETTINGS CARDS — Cart me har file ka card
+   ============================================================ */
+
+/* Ek file ka poora card */
+.file-settings-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Card ka upar wala hissa — naam aur pages */
+.file-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed var(--border-color); /* Dashed line */
+    padding-bottom: 8px;
+}
+
+/* File ka naam — blue color me, zyada lamba ho toh "..." */
+.file-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+/* Pages count ka grey badge (jaise "12 Pages") */
+.page-badge {
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* BW/Color aur Single/Double ke options ki row */
+.options-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Ek option block — click karne wala button jaisa box */
+.option-block {
+    flex: 1;                        /* Dono blocks equal width */
+    text-align: center;
+    padding: 8px 5px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    user-select: none;              /* Click karne pe text select na ho */
+}
+
+/* Active/Selected states — jo option chuna ho wo highlight hoga */
+.option-block.active[data-val="bw"] {
+    border-color: #475569;
+    background: #475569;
+    color: white;
+}
+
+.option-block.active[data-val="color"] {
+    border-color: #ec4899;   /* Pink — color print ke liye */
+    background: #fdf2f8;
+    color: #ec4899;
+}
+
+.option-block.active[data-val="single"] {
+    border-color: var(--primary);
+    background: #f0f9ff;
+    color: var(--primary);
+}
+
+.option-block.active[data-val="double"] {
+    border-color: var(--success);
+    background: #ecfdf5;
+    color: var(--success);
+}
+
+/* Copies section — number input aur price side by side */
+.copies-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* Copies ka number input box */
+.copies-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Is file ka price — bold dark text */
+.file-price {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+
+/* ============================================================
+   SELECTED OPTION STYLE — Jo block select ho uska dark style
+   NOTE: Ye neeche hai isliye upar ke specific styles ko
+   override karta hai (!important se)
+   ============================================================ */
+.option-block.active {
+    background-color: #333f4f !important; /* Dark grey-blue */
+    color: white !important;
+    border-color: #333f4f !important;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+}

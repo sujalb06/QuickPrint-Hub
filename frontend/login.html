@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="login.css">
+</head>
+<body>
+        
+        <div class="login-wrapper">
+        <div class="login-card">
+            
+            <div class="logo-container">
+                <div class="logo-icon">🖨️</div>
+                <h1>QuickPrint Hub</h1>
+                <p>Skip the queue, print smarter.</p>
+            </div>
+
+            <div class="role-tabs">
+                <button type="button" class="tab-btn active" id="userTab" onclick="switchRole('user')">Student</button>
+                <button type="button" class="tab-btn" id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                
+                <div class="input-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="E.g. SUJAL" required autocomplete="name">
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Phone Number</label>
+                    <div class="phone-input-wrapper">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="10-digit mobile number" required autocomplete="tel">
+                    </div>
+                </div>
+
+                <div class="input-group hidden" id="otpSection">
+                    <label for="otp">Enter Verification Code</label>
+                    <input type="text" id="otp" placeholder="Enter 4-digit code" maxlength="4" autocomplete="one-time-code">
+                    <!-- <p class="help-text">For testing, use code: <strong>1234</strong></p> -->
+                </div>
+
+                <button type="button" class="btn primary-btn w-100" id="reqOtpBtn" onclick="requestOTP()">
+                    Request OTP
+                </button>
+                
+                <button type="submit" class="btn success-btn w-100 hidden" id="loginBtn">
+                    Verify & Secure Login 🔒
+                </button>
+
+            </form>
+            
+            <!-- <div class="secure-footer">
+                <p>🔒 Secured by Medi-Caps University Network</p>
+            </div> -->
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,611 @@
+/* ============================================================
+   QUICKPRINT - ADMIN DASHBOARD STYLESHEET
+   Ye file shopkeeper ke dashboard ka poora design control karti hai
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   GOOGLE FONTS — Internet se "Inter" font load karo
+------------------------------------------------------------ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+
+/* ------------------------------------------------------------
+   CSS VARIABLES — Ek jagah se saare colors control karo
+   Admin theme dark/professional hai, user side se alag
+------------------------------------------------------------ */
+:root {
+    --admin-primary: #1e293b;     /* Dark Slate — navbar aur headings */
+    --admin-secondary: #334155;   /* Thoda halka slate — stat card border */
+    --bg-color: #f1f5f9;          /* Page background — user.css se thoda dark */
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+
+    /* Action Colors */
+    --success: #10b981;           /* Green — Complete button */
+    --success-hover: #059669;     /* Green dark — hover pe */
+    --danger: #ef4444;            /* Red — Clear/Delete button */
+    --danger-hover: #dc2626;      /* Red dark — hover pe */
+    --warning: #f59e0b;           /* Amber/Yellow — Pending orders stat */
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+    --radius: 10px;               /* Cards ke corners ki roundness */
+}
+
+
+/* ------------------------------------------------------------
+   BASE RESET — Browser ki default margin/padding hatao
+------------------------------------------------------------ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;       /* Padding width ke andar count ho */
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   ADMIN NAVBAR — Dark upar wali strip
+   ============================================================ */
+.admin-navbar {
+    background-color: var(--admin-primary); /* Dark background */
+    color: white;
+    padding: 16px 5%;
+    display: flex;
+    justify-content: space-between;  /* Logo left, clock+buttons right */
+    align-items: center;
+    box-shadow: var(--shadow-md);
+    position: sticky;                /* Scroll karo toh bhi upar chipka rahe */
+    top: 0;
+    z-index: 100;                    /* Sabse upar layer */
+}
+
+.admin-navbar h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;           /* Letters ke beech thodi jagah */
+}
+
+/* Right side buttons group */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Live clock box — transparent white background me */
+/* .clock {
+    font-family: monospace;          Monospace = saare numbers same width
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.1); 10% transparent white
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+} */
+
+
+/* ============================================================
+   MAIN LAYOUT — Page ka container
+   ============================================================ */
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;    /* Page ke center me */
+    padding: 30px 5%;
+}
+
+/* Top heading area — left me title, right me buttons */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;       /* Dono neeche se align */
+    margin-bottom: 25px;
+}
+
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--text-main);
+}
+
+/* Heading ke neeche chhota grey text */
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-top: 5px;
+}
+
+
+/* ============================================================
+   STATS ROW — 3 numbers wali top row (Total, Pending, Done)
+   ============================================================ */
+
+/* 3 equal columns */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Ek stat card — left side colored border hoti hai */
+.stat-card {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    border-left: 5px solid var(--admin-secondary); /* Default: dark slate border */
+}
+
+/* Pending card — yellow/amber border */
+.stat-card.pending {
+    border-left-color: var(--warning);
+}
+
+/* Completed card — green border */
+.stat-card.completed {
+    border-left-color: var(--success);
+}
+
+/* Card ka label (jaise "TOTAL ORDERS") — chota uppercase */
+.stat-card h3 {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-transform: uppercase;   /* Chhote letters bade kar do */
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+/* Card ka bada number */
+.stat-card h2 {
+    font-size: 2.5rem;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   QUEUE SECTION — Orders dikhane wala bada white box
+   ============================================================ */
+.queue-section {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+/* Queue heading + search box — side by side */
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Search box */
+.queue-filters .form-control {
+    width: 300px;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* Search box pe click karo toh dark border */
+.queue-filters .form-control:focus {
+    border-color: var(--admin-primary);
+}
+
+
+/* ============================================================
+   ORDERS GRID — Cards ka responsive grid
+   ============================================================ */
+
+/* auto-fill = jitni jagah ho utne columns, minimum 350px wide */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+/* Ek order card */
+.order-card {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover pe card thoda upar uthta hai */
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+}
+
+/* Card ka upar — order number + time */
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+/* Order number badge — jaise #0012 */
+.order-number {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--admin-primary);
+    background: #e2e8f0;         /* Grey background */
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+/* Order ka time — grey chhota text */
+.order-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Student ka naam aur phone */
+.student-info {
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+
+/* ============================================================
+   FILE DETAILS — Card ke andar files ki list
+   ============================================================ */
+
+/* File list ka white scrollable box */
+.file-details {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 15px;
+    max-height: 220px;    /* Zyada files ho toh scroll karo */
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Ek file ki row */
+.file-item {
+    display: flex;
+    flex-wrap: wrap;      /* Zyada content ho toh neeche chala jaaye */
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Last file ke neeche extra margin nahi */
+.file-item:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================================
+   BADGES — Colored labels (BW, Color, Single, Double)
+   ============================================================ */
+.badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-bw     { background: #475569; color: white; }                                /* Dark grey */
+.badge-color  { background: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; } /* Pink */
+.badge-single { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; } /* Blue */
+.badge-double { background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; } /* Green */
+
+
+/* ============================================================
+   ORDER FOOTER — Bill amount + Complete button
+   ============================================================ */
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* Total amount — bada bold */
+.total-bill {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+button {
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+/* Green — "Print & Complete" button */
+.btn-success {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.btn-success:hover { background: var(--success-hover); }
+
+/* Red filled — "Clear History" jaisi dangerous action */
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-danger:hover { background: var(--danger-hover); }
+
+/* Red outline — dark navbar me use hota hai (logout jaisa) */
+.btn-danger-outline {
+    background: transparent;
+    color: #fca5a5;              /* Light red text */
+    border: 1px solid #fca5a5;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* Hover pe background thoda red aur text white */
+.btn-danger-outline:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: white;
+    border-color: white;
+}
+
+
+/* ============================================================
+   RESPONSIVE — Chote screens ke liye adjustments
+   ============================================================ */
+@media (max-width: 992px) {
+
+    /* Tablet pe 3 stat cards ek ke neeche ek */
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* Header me title aur buttons ek ke neeche ek */
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* Queue heading aur search box ek ke neeche ek */
+    .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* Search box poori width le lo */
+    .queue-filters .form-control {
+        width: 100%;
+    }
+}
+
+
+/* ============================================================
+   ORDERS CONTAINER FIX — Chote cards ko stretch hone se rokna
+   ============================================================ */
+
+/* !important isliye ki grid ki default "stretch" behavior override ho */
+#ordersContainer {
+    align-items: flex-start !important;
+}
+
+
+/* ============================================================
+   CUSTOM SCROLLBAR — File details box ka patla scrollbar
+   ============================================================ */
+
+/* Scrollbar ki total width */
+.file-details::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* Scrollbar ka track (peeche wali line) */
+.file-details::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+/* Scrollbar ka thumb (jo pakad ke scroll karte hain) */
+.file-details::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+/* Thumb pe hover karo toh thoda dark ho */
+.file-details::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+
+/* ============================================================
+   FILE ITEM — STACKED LAYOUT
+   Har file 3 lines me dikhti hai: naam, badges, download button
+   ============================================================ */
+
+/* Ek file ka poora stacked container */
+.file-item-stacked {
+    display: flex;
+    flex-direction: column;  /* Items ek ke neeche ek */
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 0;
+    border-bottom: 1px solid #e2e8f0; /* Files ke beech divider line */
+    width: 100%;
+}
+
+/* Line 1 — File ka naam aur pages */
+.file-line-1 {
+    font-size: 0.95rem;
+    color: #1e293b;
+    font-weight: 500;
+    width: 100%;
+}
+
+/* Line 2 — BW/Color, Single/Double, Qty badges side by side */
+.file-line-2 {
+    display: flex;
+    justify-content: center;   /* Badges center me */
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Har badge equal width lega (teeno barabar) */
+.file-line-2 .badge,
+.badge-qty {
+    flex: 1;                   /* Available space equally share karo */
+    text-align: center;
+    padding: 8px 0 !important; /* Upar-neeche padding, side auto */
+    font-size: 0.85rem !important;
+    border-radius: 6px;
+    max-width: 90px;           /* Zyada wide na ho */
+}
+
+/* Qty badge ka specific style */
+.badge-qty {
+    font-weight: 600;
+    color: #475569;
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+}
+
+/* Line 3 — Download button center me */
+.file-line-3 {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 6px;
+}
+
+/* Download button — badges ki total width jitna wide */
+.btn-download-small {
+    display: block;
+    width: 100%;
+    max-width: calc(3 * 90px + 2 * 10px); /* 3 badges (90px each) + 2 gaps (10px each) */
+    text-align: center;
+    background: #0ea5e9;                   /* Sky blue */
+    color: white;
+    padding: 8px 0;
+    border-radius: 6px;
+    text-decoration: none;                 /* Underline hatao */
+    font-size: 0.95rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2); /* Halki blue shadow */
+    transition: all 0.2s ease;
+}
+
+/* Hover pe thoda dark aur upar uthta hai */
+.btn-download-small:hover {
+    background: #0284c7;
+    transform: translateY(-1px);
+}
+
+
+
+/* ========================================= */
+/* 📱 MOBILE RESPONSIVE DESIGN (MAGIC CODE)  */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* 1. Main Order Card ki spacing theek karna */
+    .order-card {
+        margin: 10px 5px !important; /* Mobile me left-right space kam karte hain */
+        padding: 15px !important;
+    }
+
+    /* 2. Badges screen se bahar na bhagein isliye unhe Wrap karna */
+    .file-line-2 {
+        flex-wrap: wrap !important; 
+        gap: 8px !important;
+    }
+
+    /* 3. Download Button ko bada aur Thumb-friendly banana */
+    .btn-download-small {
+        width: 100% !important; /* Poori width lega */
+        text-align: center;
+        padding: 12px 0 !important;
+        margin-top: 10px !important;
+        font-size: 1rem !important;
+    }
+
+    /* 4. Footer (Price aur 'Print & Complete' button) ko upar-neeche (Stack) karna */
+    .order-footer {
+        flex-direction: column !important; /* Pehle aaju-baaju the, ab upar-neeche */
+        gap: 15px !important;
+        align-items: stretch !important; 
+    }
+
+    /* 5. Price ko Center karna */
+    .total-bill {
+        text-align: center !important;
+        font-size: 1.4rem !important; /* Mobile me price thoda bada dikhega */
+    }
+
+    /* 6. Main Action Button ko Bada karna */
+    .btn-success {
+        width: 100% !important; /* Mobile me button poora chouda (wide) hona chahiye */
+        padding: 16px !important;
+        font-size: 1.1rem !important;
+        border-radius: 8px !important;
+    }
+}
+
+
+
+/* ========================================= */
+/* CLEAR HISTORY BUTTON POSITIONING          */
+/* ========================================= */
+
+
+#clearHistoryBtn {
+    display: block;
+    margin: 0 auto;
+    margin-top: 3%;
+}
