@@ -227,3 +227,38 @@ body {
     50% { transform: translateY(-8px); }
     100% { transform: translateY(0px); }
 }
+
+
+
+
+/* ============================================================
+   MOBILE RESPONSIVE — Login page ke liye (max 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+
+    /* Card ki padding kam karo — mobile pe zyada side space nahi hoti */
+    .login-card {
+        padding: 28px 20px;
+    }
+
+    /* Logo thoda chota */
+    .logo-icon {
+        font-size: 2.2rem;
+    }
+
+    .logo-container h1 {
+        font-size: 1.3rem;
+    }
+
+    /* Tab buttons touch-friendly bade karo */
+    .tab-btn {
+        padding: 10px 8px;
+        font-size: 0.88rem;
+    }
+
+    /* Buttons bade aur easy to tap */
+    .btn {
+        padding: 13px;
+        font-size: 0.95rem;
+    }
+}
