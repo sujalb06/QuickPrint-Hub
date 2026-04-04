@@ -155,10 +155,13 @@ app.get('/api/nuke-database', async (req, res) => {
 // ==========================================
 // DANGEROUS: SECRET URL TO CLEAR DATABASE 🧹
 // ==========================================
-app.get('/api/clear-db/:secret', async (req, res) => {
+// ==========================================
+// SECRET URL TO CLEAR ONLY 'USERS' DATABASE 🧹
+// ==========================================
+app.get('/api/clear-users/:secret', async (req, res) => {
     const userSecret = req.params.secret;
     
-    // Apna ek lamba/secret password yahan set karo
+    // Apna secret password
     const MY_MASTER_PASSWORD = "medicaps-admin-clear-123";
 
     if (userSecret !== MY_MASTER_PASSWORD) {
@@ -166,13 +169,11 @@ app.get('/api/clear-db/:secret', async (req, res) => {
     }
 
     try {
-        // Yahan un Models ka naam likho jinka data udana hai
-        // (Dhyan rakho ki tumne Order ya User model import kiya ho upar)
+        // Ye line strictly sirf 'User' database ko khali karegi
+        // Make sure tumhari file me mongoose model ka naam 'User' hi hai
+        await User.deleteMany({});  
         
-        // await User.deleteMany({});   // Agar Users hatane hain toh ye line un-comment karo
-        // await Order.deleteMany({});  // Agar Orders hatane hain toh ye line un-comment karo
-        
-        res.send("<h1>Bhai, Database ekdum chamak gaya! (Cleared Successfully) 🧹✨</h1>");
+        res.send("<h1>Bhai, saare Users ka data ekdum saaf ho gaya! 🧹✨</h1>");
     } catch (error) {
         console.error(error);
         res.status(500).send("<h1>Koi error aa gaya bhai: " + error.message + "</h1>");
