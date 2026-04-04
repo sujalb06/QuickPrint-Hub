@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('quickprint_user');
     if (!savedUser) {
         alert("Please login first!");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
         return;
     }
 
@@ -320,7 +320,7 @@ function closeModal() {
 function logout() {
     localStorage.removeItem('quickprint_token'); // JWT token hatao
     localStorage.removeItem('quickprint_user');  // User data hatao
-    window.location.href = "login.html";         // Login page pe bhejo
+    window.location.href = "index.html";         // Login page pe bhejo
 }
 
 

@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check karo: kya koi login hai?
     const savedUser = localStorage.getItem('quickprint_user');
     if (!savedUser) {
-        window.location.href = "login.html"; // Login nahi hai toh wapas bhejo
+        window.location.href = "index.html"; // Login nahi hai toh wapas bhejo
         return;
     }
 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(savedUser);
     if (user.role !== 'admin') {
         alert("Access Denied! Only Shopkeepers can view this page.");
-        window.location.href = "login.html"; // Admin nahi hai toh wapas bhejo
+        window.location.href = "index.html"; // Admin nahi hai toh wapas bhejo
         return;
     }
 
@@ -286,7 +286,7 @@ document.getElementById('searchOrder').addEventListener('input', (e) => {
 
 function logoutAdmin() {
     localStorage.removeItem('quickprint_user'); // Login data delete karo
-    window.location.href = "login.html";         // Login page pe bhejo
+    window.location.href = "index.html";         // Login page pe bhejo
 }
 
 
