@@ -195,11 +195,12 @@ body {
     font-weight: 600;
 }
 
-.help-text {
+/* .help-text {
     font-size: 0.8rem;
     color: var(--text-muted);
     margin-top: 8px;
-}
+    ali
+} */
 
 /* ---------------- Buttons ---------------- */
 .btn {
