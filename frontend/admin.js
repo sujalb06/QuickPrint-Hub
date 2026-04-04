@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fetchLiveQueue() {
     try {
         // Server se orders ki list maango
-        const response = await fetch('http://localhost:5000/api/orders/queue');
+        const response = await fetch('https://quickprint-hub.onrender.com/api/orders/queue');
         const data = await response.json();
 
         if (data.success) {
@@ -210,7 +210,7 @@ function updateStats() {
 async function markComplete(dbId, serialNum) {
     try {
         // Server ko batao ki ye order complete ho gaya
-        const response = await fetch(`http://localhost:5000/api/orders/${dbId}/complete`, {
+        const response = await fetch(`https://quickprint-hub.onrender.com/api/orders/${dbId}/complete`, {
             method: 'PUT'
         });
         const data = await response.json();
@@ -247,7 +247,7 @@ async function clearOrderHistory() {
     if (confirmClear) {
         try {
             // Server ko DELETE request bhejo
-            const response = await fetch('http://localhost:5000/api/orders/clear', {
+            const response = await fetch('https://quickprint-hub.onrender.com/api/orders/clear', {
                 method: 'DELETE'
             });
             const data = await response.json();

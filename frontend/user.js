@@ -248,7 +248,7 @@ async function processPayment() {
 
     try {
         // Server ko POST request bhejo — JWT token header me bhejo verification ke liye
-        const response = await fetch('http://localhost:5000/api/orders', {
+        const response = await fetch('https://quickprint-hub.onrender.com/api/orders', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}` // Token se prove karo ki tum valid user ho
@@ -331,7 +331,7 @@ function logout() {
 async function fetchLiveQueue() {
     try {
         // Server se queue ka data maango
-        const response = await fetch('http://localhost:5000/api/orders/queue');
+        const response = await fetch('https://quickprint-hub.onrender.com/api/orders/queue');
         const data = await response.json();
 
         if (data.success) {

@@ -96,7 +96,7 @@ async function handleLogin(event) {
 
     try {
         // Backend server ko login request bhejo (POST)
-        const response = await fetch('http://localhost:5000/api/login', {
+        const response = await fetch('https://quickprint-hub.onrender.com/api/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json' // Server ko batao ki JSON aa raha hai
