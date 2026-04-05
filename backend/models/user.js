@@ -37,10 +37,10 @@ const userSchema = new mongoose.Schema({
     },
 
     // OTP se verify hua ya nahi (future me SMS API lagegi tab kaam aayega)
-    isVerified: {
-        type: Boolean,
-        default: false // Default: verify nahi hua
-    }
+    // isVerified: {
+    //     type: Boolean,
+    //     default: false // Default: verify nahi hua
+    // }
 
 }, {
     // Ye option automatically 2 extra fields add karta hai:
