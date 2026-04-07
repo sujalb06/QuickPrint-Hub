@@ -123,9 +123,9 @@ function renderOrders(filterText = '') {
                     <span class="badge-qty">Qty: ${file.copies || 1}</span>
                 </div>
                 <div class="file-line-3">
-                    <a href="${file.fileUrl}" target="_blank" class="btn-download-small">
+                    <button onclick="downloadFile('${file.fileUrl}')" class="btn-download-small">
                         ⬇️ Download
-                    </a>
+                    </button>
                 </div>
             </div>
         `).join('');
