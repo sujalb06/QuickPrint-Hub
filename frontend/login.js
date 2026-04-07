@@ -1,141 +1,283 @@
 // ============================================================
 // QUICKPRINT - LOGIN PAGE SCRIPT
-// OTP system hataya gaya — ab Campus User Code se login hoga
-// Student aur Admin dono ke liye alag-alag secret codes hain
+// OTP based login — Student aur Admin dono ke liye
+// Student: Phone → OTP → (Naam agar naya hai) → Dashboard
+// Admin: Phone → OTP (sirf approved numbers) → Admin Panel
 // ============================================================
 
 
 // --- GLOBAL VARIABLE ---
+let currentRole = 'user';
+let otpTimer = null;
+let adminOtpTimer = null;
 
-let currentRole = 'user'; // Default role: Student
 
+// ============================================================
+// 1. PAGE LOAD — Agar pehle se login hai toh seedha bhejo
+// ============================================================
+window.onload = function () {
+    const token = localStorage.getItem('quickprint_token');
+    const savedUser = localStorage.getItem('quickprint_user');
 
-// --- SECRET CODES (Inhe apne hisaab se change karo) ---
-// Ye codes poore campus ke liye same rahenge
-// Server pe validate karna zyada secure hoga future me
-
-const CAMPUS_CODES = {
-    user:  "STUDENT2025",   // Saare students ke liye ek code
-    admin: "ADMIN2025"      // Shopkeeper ke liye alag code
+    if (token && savedUser) {
+        const user = JSON.parse(savedUser);
+        // Token hai toh seedha sahi page pe bhejo
+        window.location.href = user.role === 'admin' ? 'admin.html' : 'user.html';
+    }
 };
 
 
 // ============================================================
-// 1. ROLE SWITCH — Student ya Shopkeeper tab click karna
+// 2. ROLE SWITCH — Student ya Shopkeeper tab click karna
 // ============================================================
-
 function switchRole(role) {
     currentRole = role;
 
-    // Dono tabs se active class hatao
-    document.getElementById('userTab').classList.remove('active');
-    document.getElementById('adminTab').classList.remove('active');
+    // Tabs highlight karo
+    document.getElementById('userTab').classList.toggle('active', role === 'user');
+    document.getElementById('adminTab').classList.toggle('active', role === 'admin');
 
-    // Jo tab chuna usse active karo
-    if (role === 'user') {
-        document.getElementById('userTab').classList.add('active');
-        document.getElementById('userCodeLabel').innerText = 'Student Code'; // Label badlo
-    } else {
-        document.getElementById('adminTab').classList.add('active');
-        document.getElementById('userCodeLabel').innerText = 'Admin Code';   // Label badlo
-    }
+    // Sahi form dikhao
+    document.getElementById('studentLoginForm').classList.toggle('hidden', role === 'admin');
+    document.getElementById('adminLoginForm').classList.toggle('hidden', role === 'user');
 
-    // Tab switch hone pe form reset karo
-    resetForm();
+    // Form reset karo
+    resetAllForms();
 }
 
 
 // ============================================================
-// 2. LOGIN — Code verify karo aur server se connect karo
+// 3. STUDENT FLOW — Step 1: OTP bhejo
 // ============================================================
+async function sendOTP() {
+    const phone = document.getElementById('phone').value.trim();
 
-async function handleLogin(event) {
-    event.preventDefault(); // Page reload rokna
-
-    const name     = document.getElementById('fullName').value.trim();
-    const phone    = document.getElementById('phone').value.trim();
-    const userCode = document.getElementById('userCode').value.trim();
-    const loginBtn = document.getElementById('loginBtn');
-
-    // Validation: Phone 10 digits ka hona chahiye
     if (phone.length !== 10 || isNaN(phone)) {
-        alert("Please enter a valid 10-digit phone number.");
+        alert('Valid 10-digit number daalo');
         return;
     }
 
-    // Campus code verify karo (role ke hisaab se)
-    if (userCode !== CAMPUS_CODES[currentRole]) {
-        alert(`Invalid ${currentRole === 'user' ? 'Student' : 'Admin'} Code! Please check and try again.`);
-        document.getElementById('userCode').value = ''; // Wrong code clear karo
-        document.getElementById('userCode').focus();
-        return;
-    }
-
-    // Code sahi hai — button loading mode me karo
-    const originalBtnText = loginBtn.innerHTML;
-    loginBtn.innerHTML = "Verifying & Connecting... ⏳";
-    loginBtn.disabled = true;
+    const btn = document.getElementById('sendOtpBtn');
+    btn.innerHTML = 'Sending... ⏳';
+    btn.disabled = true;
 
     try {
-        // Server ko login request bhejo
-        const response = await fetch('https://quickprint-hub.onrender.com/api/login', {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/send-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fullName: name,
-                phone: phone,
-                role: currentRole
-            })
+            body: JSON.stringify({ phone, role: 'user' })
         });
-
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.success) {
-            // Token aur user data save karo
-            localStorage.setItem('quickprint_token', data.token);
-            localStorage.setItem('quickprint_user', JSON.stringify(data.user));
-
-            // Role ke hisaab se page pe bhejo
-            if (currentRole === 'user') {
-                window.location.href = "user.html";
-            } else {
-                window.location.href = "admin.html";
-            }
-
+            // Phone step chhupao, OTP step dikhao
+            document.getElementById('phoneStep').classList.add('hidden');
+            document.getElementById('otpStep').classList.remove('hidden');
+            startResendTimer('resendTimer', 'sendOTP');
         } else {
-            alert("Login failed: " + data.error);
-            loginBtn.innerHTML = originalBtnText;
-            loginBtn.disabled = false;
+            alert(data.error || 'OTP bhejne mein problem hui');
+            btn.innerHTML = 'Send OTP';
+            btn.disabled = false;
         }
-
-    } catch (error) {
-        console.error("Server connection error:", error);
-        alert("Server se connect nahi ho paya. Please check if backend is running.");
-        loginBtn.innerHTML = originalBtnText;
-        loginBtn.disabled = false;
+    } catch (e) {
+        alert('Server se connect nahi ho paya');
+        btn.innerHTML = 'Send OTP';
+        btn.disabled = false;
     }
 }
 
 
 // ============================================================
-// 3. FORM RESET — Tab switch pe form saaf karo
+// 4. STUDENT FLOW — Step 2: OTP verify karo
 // ============================================================
+async function verifyOTP() {
+    const phone = document.getElementById('phone').value.trim();
+    const otp = document.getElementById('otpInput').value.trim();
 
-function resetForm() {
-    document.getElementById('loginForm').reset();
+    if (otp.length !== 4) {
+        alert('4 digit OTP daalo');
+        return;
+    }
+
+    try {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, otp, role: 'user' })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            clearInterval(otpTimer);
+
+            if (data.isNewUser) {
+                // Naya user — naam maango
+                document.getElementById('otpStep').classList.add('hidden');
+                document.getElementById('nameStep').classList.remove('hidden');
+            } else {
+                // Purana user — seedha login
+                saveAndRedirect(data.token, data.user);
+            }
+        } else {
+            alert('OTP galat hai, dobara try karo');
+        }
+    } catch (e) {
+        alert('Server error, try again');
+    }
 }
 
 
 // ============================================================
-// 4. PAGE LOAD PE AUTO-CHECK — Kya user pehle se logged in hai?
+// 5. STUDENT FLOW — Step 3: Naam save karo (sirf naye user ke liye)
 // ============================================================
+async function completeLogin() {
+    const phone = document.getElementById('phone').value.trim();
+    const name = document.getElementById('fullName').value.trim();
 
-window.onload = function() {
-    const savedUser = localStorage.getItem('quickprint_user');
-
-    if (savedUser) {
-        // Pehle se login hai toh seedha redirect karo (optional)
-        // const user = JSON.parse(savedUser);
-        // window.location.href = user.role === 'admin' ? 'admin.html' : 'user.html';
+    if (!name) {
+        alert('Naam daalo');
+        return;
     }
+
+    try {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, fullName: name, role: 'user' })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            saveAndRedirect(data.token, data.user);
+        } else {
+            alert(data.error || 'Registration mein problem');
+        }
+    } catch (e) {
+        alert('Server error');
+    }
+}
+
+
+// ============================================================
+// 6. ADMIN FLOW — Step 1: OTP bhejo (sirf approved numbers ko)
+// ============================================================
+async function sendAdminOTP() {
+    const phone = document.getElementById('adminPhone').value.trim();
+
+    if (phone.length !== 10 || isNaN(phone)) {
+        alert('Valid 10-digit number daalo');
+        return;
+    }
+
+    try {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, role: 'admin' })
+            // Backend check karega — approved admin list mein hai ya nahi
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('adminPhoneStep').classList.add('hidden');
+            document.getElementById('adminOtpStep').classList.remove('hidden');
+            startResendTimer('adminResendTimer', 'sendAdminOTP');
+        } else {
+            // "Not authorized" message aayega agar number list mein nahi
+            alert(data.error || 'Access denied');
+        }
+    } catch (e) {
+        alert('Server se connect nahi ho paya');
+    }
+}
+
+
+// ============================================================
+// 7. ADMIN FLOW — Step 2: OTP verify karo
+// ============================================================
+async function verifyAdminOTP() {
+    const phone = document.getElementById('adminPhone').value.trim();
+    const otp = document.getElementById('adminOtpInput').value.trim();
+
+    if (otp.length !== 4) {
+        alert('4 digit OTP daalo');
+        return;
+    }
+
+    try {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, otp, role: 'admin' })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            clearInterval(adminOtpTimer);
+            saveAndRedirect(data.token, data.user);
+        } else {
+            alert('OTP galat hai');
+        }
+    } catch (e) {
+        alert('Server error');
+    }
+}
+
+
+// ============================================================
+// 8. HELPER: Token + User save karo, sahi page pe bhejo
+// ============================================================
+function saveAndRedirect(token, user) {
+    localStorage.setItem('quickprint_token', token);
+    localStorage.setItem('quickprint_user', JSON.stringify(user));
+    window.location.href = user.role === 'admin' ? 'admin.html' : 'user.html';
+}
+
+
+// ============================================================
+// 9. HELPER: Resend timer — 30 second countdown
+// ============================================================
+function startResendTimer(elementId, resendFn) {
+    let seconds = 30;
+    const el = document.getElementById(elementId);
+
+    const timer = setInterval(() => {
+        seconds--;
+        el.innerText = `Resend in ${seconds}s`;
+
+        if (seconds <= 0) {
+            clearInterval(timer);
+            el.innerHTML = `<a href="#" onclick="${resendFn}(); return false;" style="color: var(--primary);">Resend OTP</a>`;
+        }
+    }, 1000);
+
+    // Timer variable save karo cancel ke liye
+    if (elementId === 'resendTimer') otpTimer = timer;
+    else adminOtpTimer = timer;
+}
+
+
+// ============================================================
+// 10. HELPER: Saare forms reset karo
+// ============================================================
+function resetAllForms() {
+    // Student form reset
+    document.getElementById('phoneStep').classList.remove('hidden');
+    document.getElementById('otpStep').classList.add('hidden');
+    document.getElementById('nameStep').classList.add('hidden');
+    document.getElementById('phone').value = '';
+    document.getElementById('otpInput').value = '';
+    if (document.getElementById('fullName')) document.getElementById('fullName').value = '';
+    const sendBtn = document.getElementById('sendOtpBtn');
+    if (sendBtn) { sendBtn.innerHTML = 'Send OTP'; sendBtn.disabled = false; }
+
+    // Admin form reset
+    document.getElementById('adminPhoneStep').classList.remove('hidden');
+    document.getElementById('adminOtpStep').classList.add('hidden');
+    document.getElementById('adminPhone').value = '';
+    document.getElementById('adminOtpInput').value = '';
+
+    // Timers band karo
+    if (otpTimer) clearInterval(otpTimer);
+    if (adminOtpTimer) clearInterval(adminOtpTimer);
 }

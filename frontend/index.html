@@ -10,7 +10,8 @@
         
         <div class="login-wrapper">
         <div class="login-card">
-            
+ 
+            <!-- Logo aur branding -->
             <div class="logo-container">
                 <div class="logo-icon">🖨️</div>
                 <h1>QuickPrint Hub</h1>
@@ -23,40 +24,89 @@
                 <button type="button" class="tab-btn" id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
             </div>
  
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                
+            <!-- ======== STUDENT LOGIN FORM ======== -->
+            <div id="studentLoginForm">
+
                 <!-- Full Name -->
                 <div class="input-group">
                     <label for="fullName">Full Name</label>
                     <input type="text" id="fullName" placeholder="E.g. Sujal" required autocomplete="name">
                 </div>
  
-                <!-- Phone Number -->
-                <div class="input-group">
-                    <label for="phone">Phone Number</label>
-                    <div class="phone-input-wrapper">
-                        <span class="country-code">+91</span>
-                        <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="10-digit mobile number" required autocomplete="tel">
+                <!-- Step 1: Phone number -->
+                <div id="phoneStep">
+                    <div class="input-group">
+                        <label>Phone Number</label>
+                        <div class="phone-input-wrapper">
+                            <span class="country-code">+91</span>
+                            <input type="tel" id="phone" placeholder="10-digit number" maxlength="10">
+                        </div>
                     </div>
+                    <button type="button" class="btn primary-btn w-100" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
                 </div>
  
-                <!-- User Code (OTP ki jagah) -->
-                <div class="input-group">
-                    <label for="userCode" id="userCodeLabel">Student Code</label>
-                    <div class="code-input-wrapper">
-                        <span class="code-icon">🔑</span>
-                        <input type="password" id="userCode" placeholder="Enter your campus code" required autocomplete="off">
+                <!-- Step 2: OTP verify (pehle hidden) -->
+                <div id="otpStep" class="hidden">
+                    <div class="input-group">
+                        <label>Enter OTP</label>
+                        <div class="otp-input-wrapper">
+                            <span class="code-icon">🔑</span>
+                            <input type="text" id="otpInput" placeholder="4-digit OTP" maxlength="4" autocomplete="one-time-code">
+                        </div>
+                        <p class="help-text" id="resendTimer">Resend in 30s</p>
                     </div>
-                    <!-- <p class="help-text">Use the campus access code shared by your institution.</p> -->
+                    <button type="button" class="btn primary-btn w-100" onclick="verifyOTP()">
+                        Verify OTP
+                    </button>
                 </div>
  
-                <!-- Login Button -->
-                <button type="submit" class="btn success-btn w-100" id="loginBtn">
-                    Verify & Secure Login 🔒
-                </button>
+                <!-- Step 3: Naam (sirf naye user ke liye, pehle hidden) -->
+                <div id="nameStep" class="hidden">
+                    <div class="input-group">
+                        <label>Your Name</label>
+                        <input type="text" id="fullName" placeholder="Apna poora naam daalo">
+                    </div>
+                    <button type="button" class="btn success-btn w-100" onclick="completeLogin()">
+                        Enter QuickPrint 🚀
+                    </button>
+                </div>
  
-            </form>
-            
+            </div>
+ 
+            <!-- ======== ADMIN LOGIN FORM (pehle hidden) ======== -->
+            <div id="adminLoginForm" class="hidden">
+ 
+                <!-- Step 1: Admin phone -->
+                <div id="adminPhoneStep">
+                    <div class="input-group">
+                        <label>Admin Phone Number</label>
+                        <div class="phone-input-wrapper">
+                            <span class="country-code">+91</span>
+                            <input type="tel" id="adminPhone" placeholder="Registered admin number" maxlength="10">
+                        </div>
+                    </div>
+                    <button type="button" class="btn primary-btn w-100" onclick="sendAdminOTP()">
+                        Send OTP
+                    </button>
+                </div>
+ 
+                <!-- Step 2: Admin OTP (pehle hidden) -->
+                <div id="adminOtpStep" class="hidden">
+                    <div class="input-group">
+                        <label>Enter OTP</label>
+                        <div class="otp-input-wrapper">
+                            <span class="code-icon">🔑</span>
+                            <input type="text" id="adminOtpInput" placeholder="4-digit OTP" maxlength="4" autocomplete="one-time-code">
+                        </div>
+                        <p class="help-text" id="adminResendTimer">Resend in 30s</p>
+                    </div>
+                    <button type="button" class="btn success-btn w-100" onclick="verifyAdminOTP()">
+                        Verify & Enter Admin Panel 🔒
+                    </button>
+                </div>
+ 
+            </div>
+ 
         </div>
     </div>
  
@@ -64,3 +114,5 @@
  
 </body>
 </html>
+
+

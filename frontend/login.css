@@ -130,7 +130,7 @@ body {
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
-/* Phone Number Wrapper */
+/* ---------------- Phone Number Wrapper ---------------- */
 .phone-input-wrapper {
     display: flex;
     border: 1.5px solid var(--border-color);
@@ -151,6 +151,7 @@ body {
     color: var(--text-muted);
     border-right: 1.5px solid var(--border-color);
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .phone-input-wrapper input {
@@ -160,9 +161,9 @@ body {
     box-shadow: none !important;
 }
 
-/* ---------------- User Code Input (NEW) ---------------- */
-/* OTP ki jagah yeh campus code wala input aaya hai */
-.code-input-wrapper {
+/* ---------------- OTP Input Wrapper (NEW) ---------------- */
+/* Phone wale jaisa, green glow ke saath */
+.otp-input-wrapper {
     display: flex;
     border: 1.5px solid var(--border-color);
     border-radius: 8px;
@@ -170,14 +171,14 @@ body {
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.code-input-wrapper:focus-within {
-    border-color: var(--success);           /* Green glow — secure feel */
+.otp-input-wrapper:focus-within {
+    border-color: var(--success);
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-/* Key icon wala left part */
+/* Key icon wala hissa */
 .code-icon {
-    background: #f0fdf4;                    /* Halka green background */
+    background: #f0fdf4;
     padding: 12px 14px;
     font-size: 1rem;
     border-right: 1.5px solid var(--border-color);
@@ -185,22 +186,25 @@ body {
     align-items: center;
 }
 
-/* Input box andar */
-.code-input-wrapper input {
+/* OTP input ke andar */
+.otp-input-wrapper input {
     border: none;
     border-radius: 0;
     margin: 0;
     box-shadow: none !important;
-    letter-spacing: 2px;                    /* Code ke characters ke beech thodi space */
-    font-weight: 600;
+    letter-spacing: 6px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-align: center;
 }
 
-/* .help-text {
-    font-size: 0.8rem;
+/* Help text — resend timer aur link ke liye */
+.help-text {
+    font-size: 0.82rem;
     color: var(--text-muted);
     margin-top: 8px;
-    ali
-} */
+    text-align: right;
+}
 
 /* ---------------- Buttons ---------------- */
 .btn {
@@ -236,25 +240,12 @@ body {
 
 .w-100 { width: 100%; }
 
-/* ---------------- Footer & Utilities ---------------- */
-.secure-footer {
-    margin-top: 25px;
-    text-align: center;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-}
-
-.secure-footer p {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
+/* ---------------- Utilities ---------------- */
 .hidden {
     display: none !important;
 }
 
-/* Floating animation */
+/* Floating animation for logo */
 @keyframes float {
     0%   { transform: translateY(0px); }
     50%  { transform: translateY(-8px); }
