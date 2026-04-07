@@ -1,96 +1,103 @@
 // ============================================================
 // QUICKPRINT - BACKEND SERVER (server.js)
-// Ye file poora backend hai — database, login, orders sab yahan
-// Node.js + Express + MongoDB use ho raha hai
+// Changes:
+// 1. OTP routes add kiye (send-otp, verify-otp, register)
+// 2. APPROVED_ADMINS list — sirf yahi numbers admin ban sakte hain
+// 3. isAdmin middleware — admin-only routes protect kiye
+// 4. Queue route ab token required hai
+// 5. Student ke liye alag /queue-count route — sirf count milta hai
+// 6. Nuke/clear-users routes HATA DIYE (security risk the)
 // ============================================================
 
 
 // ------------------------------------------------------------
-// STEP 0: .env FILE LOAD KARO (SABSE PEHLE — koi bhi line upar mat daalna)
-// .env me secret cheezein hoti hain jaise password, API keys
+// STEP 0: .env FILE LOAD KARO
 // ------------------------------------------------------------
 require('dotenv').config();
 
 
 // ------------------------------------------------------------
-// STEP 1: ZAROORI PACKAGES IMPORT KARO
-// Ye sab pehle: npm install karke install hote hain
+// STEP 1: PACKAGES IMPORT KARO
 // ------------------------------------------------------------
-const jwt      = require('jsonwebtoken'); // Token banana aur verify karna (login security)
-const express  = require('express');      // Server banane ka framework
-const mongoose = require('mongoose');     // MongoDB se baat karne ke liye
-const cors     = require('cors');         // Frontend ko server se connect hone dena
-
-const multer   = require('multer');       // Files (PDF) upload receive karne ke liye
-const path     = require('path');         // File/folder ke paths ke saath kaam karna
-const fs       = require('fs');           // Computer ki files read/delete karna
-const cron     = require('node-cron');    // Roz raat 12 baje auto-cleanup schedule karna
+const jwt      = require('jsonwebtoken');
+const express  = require('express');
+const mongoose = require('mongoose');
+const cors     = require('cors');
+const multer   = require('multer');
+const path     = require('path');
+const fs       = require('fs');
+const cron     = require('node-cron');
 
 
 // ------------------------------------------------------------
-// STEP 2: APP SETUP — Server start karo, port aur DB URI lo
+// STEP 2: APP SETUP
 // ------------------------------------------------------------
 const app = express();
-
-// Port aur MongoDB ka address .env file se lo (safer hota hai)
-const PORT     = process.env.PORT || 5000; // Agar .env me nahi hai toh 5000 use karo
+const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 
 // ------------------------------------------------------------
-// STEP 3: MIDDLEWARE — Har request aane se pehle ye chalta hai
+// ⭐ APPROVED ADMINS LIST — Sirf yahi numbers admin ban sakte hain
+// Apne admin ka number yahan daalo (+91 ke bina, sirf 10 digits)
 // ------------------------------------------------------------
-app.use(cors());           // Kisi bhi frontend ko server se baat karne do
-app.use(express.json());   // Incoming JSON data ko samajhne ke liye
+const APPROVED_ADMINS = [
+    '9876543210',  // ← Apna admin number yahan daalo
+    // '8765432109', // ← Dusra admin chahiye toh yahan add karo
+];
+
+
+// ------------------------------------------------------------
+// STEP 3: MIDDLEWARE
+// ------------------------------------------------------------
+app.use(cors());
+app.use(express.json());
 
 
 // ------------------------------------------------------------
 // STEP 4: UPLOADS FOLDER SETUP
 // ------------------------------------------------------------
-
-// Agar 'uploads' folder pehle se nahi hai toh banao
 if (!fs.existsSync('./uploads')) {
     fs.mkdirSync('./uploads');
 }
 
-// Uploads folder ko public karo — taaki admin file ka link khol sake
-// Ab koi bhi http://localhost:5000/uploads/filename.pdf access kar sakta hai
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// IMPORTANT: /uploads directly accessible nahi hoga ab
+// Files sirf authenticated route se milegi
+// (neeche /api/files/:filename route hai)
 
 
 // ------------------------------------------------------------
-// STEP 5: MULTER SETUP — File upload ka system
-// Multer decide karta hai: file kahan save ho aur naam kya ho
+// STEP 5: MULTER SETUP
 // ------------------------------------------------------------
 const storage = multer.diskStorage({
-
-    // File kahan save hogi
     destination: function (req, file, cb) {
-        cb(null, './uploads/'); // './uploads/' folder me daalo
+        cb(null, './uploads/');
     },
-
-    // File ka naam kya hoga
     filename: function (req, file, cb) {
-        // Naam me current time jod do — taaki same naam ki 2 files clash na karein
-        // \s matlab spaces — inhe underscore se replace karo
         cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'));
     }
 });
 
-// Multer ready karo upar wali settings ke saath
 const upload = multer({ storage: storage });
 
 
 // ------------------------------------------------------------
-// STEP 6: DATABASE MODELS IMPORT KARO
-// Ye files batati hain ki MongoDB me data ka shape kaisa hoga
+// STEP 6: DATABASE MODELS
 // ------------------------------------------------------------
 const User  = require('./models/user');
 const Order = require('./models/orders');
 
 
+// ------------------------------------------------------------
+// STEP 7: OTP STORE — Memory mein temporarily store karo
+// Production mein Redis ya MongoDB use karo
+// ------------------------------------------------------------
+const otpStore = {};
+// Format: { '9876543210': { otp: '1234', expiresAt: Date } }
+
+
 // ============================================================
-// STEP 7: MONGODB SE CONNECT KARO
+// STEP 8: MONGODB CONNECT
 // ============================================================
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ MongoDB Connected Successfully!'))
@@ -98,129 +105,85 @@ mongoose.connect(MONGO_URI)
 
 
 // ============================================================
-// STEP 8: TOKEN VERIFY KARNE WALA MIDDLEWARE (Security Guard)
-// Ye function har secured API se pehle chalta hai
-// Agar valid token nahi hai toh aage nahi jane deta
+// STEP 9: MIDDLEWARES — Security ke liye
 // ============================================================
+
+// --- Token verify karo ---
 const authenticateToken = (req, res, next) => {
-
-    // Frontend "Authorization" header me token bhejta hai
-    // Format hota hai: "Bearer eyJhbGci..."
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Sirf token wala hissa nikalo
+    const token      = authHeader && authHeader.split(' ')[1];
 
-    // Token hai hi nahi — access band karo
     if (!token) {
-        return res.status(401).json({ success: false, error: "Access Denied. No Token!" });
+        return res.status(401).json({ success: false, error: "Access Denied. Login required." });
     }
 
-    // Token ko .env ki secret key se verify karo
     jwt.verify(token, process.env.JWT_SECRET, (err, decodedData) => {
-
-        // Token galat ya expired hai
         if (err) {
-            return res.status(403).json({ success: false, error: "Invalid or Expired Token!" });
+            return res.status(403).json({ success: false, error: "Invalid or Expired Token. Please login again." });
         }
-
-        // Token sahi hai — user ka data request me save karo aur aage bhejo
         req.user = decodedData;
-        next(); // Agle middleware ya API pe jaane do
+        next();
     });
+};
+
+// --- Admin hai ya nahi check karo ---
+const isAdmin = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, error: "Admin access only." });
+    }
+    next();
 };
 
 
 // ============================================================
-// API ROUTES — Ye sab "endpoints" hain jahan frontend request karta hai
+// AUTH ROUTES — Login, OTP, Register
 // ============================================================
 
 
 // ------------------------------------------------------------
-// DANGER ZONE: DATABASE NUKE API
-// SIRF TESTING KE LIYE — Production me delete kar dena
-// Browser me jaao: http://localhost:5000/api/nuke-database
+// AUTH 1: OTP BHEJO
+// POST /api/auth/send-otp
+// Student aur Admin dono ke liye — Admin ke liye extra check
 // ------------------------------------------------------------
-app.get('/api/nuke-database', async (req, res) => {
+app.post('/api/auth/send-otp', async (req, res) => {
     try {
-        await User.deleteMany({});   // Saare users delete
-        await Order.deleteMany({});  // Saare orders delete
-        res.send("<h1>💥 KABOOM! Database poori tarah saaf ho chuki hai! 💥</h1><p>Ab aap naye number se login kar sakte hain.</p>");
-    } catch (err) {
-        res.send("Error: " + err.message);
-    }
-});
+        const { phone, role } = req.body;
 
-
-
-
-// ==========================================
-// DANGEROUS: SECRET URL TO CLEAR DATABASE 🧹
-// ==========================================
-// ==========================================
-// SECRET URL TO CLEAR ONLY 'USERS' DATABASE 🧹
-// ==========================================
-app.get('/api/clear-users/:secret', async (req, res) => {
-    const userSecret = req.params.secret;
-    
-    // Apna secret password
-    const MY_MASTER_PASSWORD = "medicaps-admin-clear-123";
-
-    if (userSecret !== MY_MASTER_PASSWORD) {
-        return res.status(401).send("<h1>Access Denied! Galat Password. 🛑</h1>");
-    }
-
-    try {
-        // Ye line strictly sirf 'User' database ko khali karegi
-        // Make sure tumhari file me mongoose model ka naam 'User' hi hai
-        await User.deleteMany({});  
-        
-        res.send("<h1>Bhai, saare Users ka data ekdum saaf ho gaya! 🧹✨</h1>");
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("<h1>Koi error aa gaya bhai: " + error.message + "</h1>");
-    }
-});
-
-
-
-
-
-
-// ------------------------------------------------------------
-// API 1: LOGIN — Student aur Admin dono ke liye
-// POST /api/login
-// ------------------------------------------------------------
-app.post('/api/login', async (req, res) => {
-    try {
-        const { fullName, phone, role } = req.body; // Frontend se naam, phone, role aaya
-
-        // Pehle check karo: kya ye phone number DB me pehle se hai?
-        let user = await User.findOne({ phone, role });
-
-        if (user) {
-            // Phone mila — lekin kya wo same role me hai?
-            if (user.role !== role) {
-                return res.status(400).json({
-                    success: false,
-                    error: `This phone number is already registered as a ${user.role.toUpperCase()}. Please use a different number.`
-                });
-            }
-            // Same role wala user mila — theek hai, login karne do
-        } else {
-            // Naya user hai — account bana lo database me
-            user = new User({ fullName, phone, role });
-            await user.save();
+        // Phone validation
+        if (!phone || !/^[0-9]{10}$/.test(phone)) {
+            return res.status(400).json({ success: false, error: 'Valid 10-digit number daalo' });
         }
 
-        // JWT Token banao — ye ek digital "ID card" hai
-        // Isme user ki ID aur role chhupa dete hain
-        const token = jwt.sign(
-            { id: user._id, role: user.role }, // Token ke andar kya data ho
-            process.env.JWT_SECRET,            // Taala lagane ki secret key (.env se)
-            { expiresIn: '24h' }               // Token 24 ghante baad khud expire ho jaayega
-        );
+        // ⭐ Admin check — approved list mein hai ya nahi
+        if (role === 'admin' && !APPROVED_ADMINS.includes(phone)) {
+            return res.status(403).json({
+                success: false,
+                error: 'This number is not authorized as admin.'
+                // Note: Koi details mat do ki list mein kya hai
+            });
+        }
 
-        // Token aur user data dono frontend ko bhejo
-        res.status(200).json({ success: true, token: token, user: user });
+        // 4-digit OTP generate karo
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // OTP store karo — 5 minute ke liye valid
+        otpStore[phone] = {
+            otp:       otp,
+            role:      role,
+            expiresAt: Date.now() + 5 * 60 * 1000  // 5 minutes
+        };
+
+        // TODO: Yahan Fast2SMS API lagao real OTP bhejne ke liye
+        // Abhi console mein print ho raha hai testing ke liye
+        console.log(`📱 OTP for ${phone}: ${otp}`);
+
+        // ⚠️ Production mein OTP response mein mat bhejo
+        // Abhi testing ke liye bhej rahe hain
+        res.json({
+            success: true,
+            message: 'OTP sent successfully',
+            otp: otp  // ← PRODUCTION MEIN YEH LINE HATA DENA
+        });
 
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -229,56 +192,157 @@ app.post('/api/login', async (req, res) => {
 
 
 // ------------------------------------------------------------
-// API 2: NEW ORDER BANAO — Student file upload karke order karta hai
+// AUTH 2: OTP VERIFY KARO
+// POST /api/auth/verify-otp
+// OTP sahi hai toh — purana user: token do, naya user: batao
+// ------------------------------------------------------------
+app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+        const { phone, otp, role } = req.body;
+
+        // OTP store mein check karo
+        const stored = otpStore[phone];
+
+        if (!stored) {
+            return res.status(400).json({ success: false, error: 'OTP expired ya nahi bheja. Dobara try karo.' });
+        }
+
+        // Expire ho gaya?
+        if (Date.now() > stored.expiresAt) {
+            delete otpStore[phone];
+            return res.status(400).json({ success: false, error: 'OTP expire ho gaya. Dobara send karo.' });
+        }
+
+        // OTP match nahi kiya?
+        if (stored.otp !== otp) {
+            return res.status(400).json({ success: false, error: 'OTP galat hai.' });
+        }
+
+        // OTP sahi — use karne ke baad delete karo (one-time use)
+        delete otpStore[phone];
+
+        // Kya user pehle se exists karta hai?
+        let user = await User.findOne({ phone, role });
+
+        if (!user) {
+            // Admin ka naya account — seedha bana do (naam ki zaroorat nahi)
+            if (role === 'admin') {
+                user = new User({ fullName: 'Admin', phone, role: 'admin' });
+                await user.save();
+            } else {
+                // Student naya hai — naam maangna padega (frontend handle karega)
+                return res.json({
+                    success: true,
+                    isNewUser: true,
+                    message: 'OTP verified. Please enter your name.'
+                });
+            }
+        }
+
+        // Token banao
+        // Admin: 30 din, Student: 12 ghante
+        const expiresIn = role === 'admin' ? '30d' : '12h';
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn }
+        );
+
+        res.json({
+            success:   true,
+            isNewUser: false,
+            token,
+            user
+        });
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ------------------------------------------------------------
+// AUTH 3: NAYE STUDENT KA NAAM SAVE KARO
+// POST /api/auth/register
+// Sirf student ke liye — naam + phone se account banaao
+// ------------------------------------------------------------
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { phone, fullName, role } = req.body;
+
+        // Admin yeh route use nahi kar sakta
+        if (role === 'admin') {
+            return res.status(403).json({ success: false, error: 'Not allowed' });
+        }
+
+        if (!fullName || fullName.trim().length < 2) {
+            return res.status(400).json({ success: false, error: 'Valid naam daalo' });
+        }
+
+        // Check — pehle se registered toh nahi?
+        let user = await User.findOne({ phone });
+        if (user) {
+            // Already exists — seedha login
+        } else {
+            user = new User({ fullName: fullName.trim(), phone, role: 'user' });
+            await user.save();
+        }
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '12h' }
+        );
+
+        res.json({ success: true, token, user });
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ============================================================
+// ORDER ROUTES — Saare protected hain
+// ============================================================
+
+
+// ------------------------------------------------------------
+// ORDER 1: NAYA ORDER BANAO
 // POST /api/orders
-// Note: authenticateToken pehle chalega (security check)
-//       upload.array baad me chalega (files receive karna)
+// authenticateToken: Login zaroori
 // ------------------------------------------------------------
 app.post('/api/orders', authenticateToken, upload.array('actualFiles'), async (req, res) => {
     try {
-        // Frontend ne FormData bheja hai (JSON nahi)
-        // Isliye order ki details string me hain — JSON.parse se object banaao
-        const orderDetails = JSON.parse(req.body.orderData);
+        const orderDetails           = JSON.parse(req.body.orderData);
         const { userId, totalAmount, filesConfig } = orderDetails;
 
-        // Aaj ke total orders count karo — serial number ke liye
         const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0); // Aaj ka din 12:00 AM se start
-        const count = await Order.countDocuments({ createdAt: { $gte: todayStart } });
-
-        // Serial number: 1 → "0001", 12 → "0012" (padStart = aage zeros lagao)
+        todayStart.setHours(0, 0, 0, 0);
+        const count       = await Order.countDocuments({ createdAt: { $gte: todayStart } });
         const orderSerial = String(count + 1).padStart(4, '0');
 
-        // Har file ke liye DB ke format me data taiyaar karo
-        // filesConfig = settings (color, pages etc.)
-        // req.files = multer ne jo files save ki hain unka info
-        const finalFilesArray = filesConfig.map((fileData, index) => {
-            return {
-                fileName:        fileData.fileName,
-                totalPages:      fileData.totalPages,
-                copies:          fileData.copies,
-                colorType:       fileData.colorType,
-                printSide:       fileData.printSide,
-                priceForThisFile: fileData.priceForThisFile,
-                // Multer ne file uploads/ folder me save ki — uska download link banao
-                fileUrl: `http://localhost:5000/uploads/${req.files[index].filename}`
-            };
-        });
+        const finalFilesArray = filesConfig.map((fileData, index) => ({
+            fileName:         fileData.fileName,
+            totalPages:       fileData.totalPages,
+            copies:           fileData.copies,
+            colorType:        fileData.colorType,
+            printSide:        fileData.printSide,
+            priceForThisFile: fileData.priceForThisFile,
+            // File ka naam save karo — URL nahi (protected route se milegi)
+            fileUrl: req.files[index].filename
+        }));
 
-        // Naya order object banao
         const newOrder = new Order({
             userId,
             orderSerial,
             files: finalFilesArray,
             totalAmount,
-            orderStatus: 'In Queue' // Shuru me "In Queue" status
+            orderStatus: 'In Queue'
         });
 
-        // Database me save karo
         await newOrder.save();
-
-        // Frontend ko order serial number bhejo (success modal me dikhega)
-        res.status(201).json({ success: true, orderSerial: orderSerial });
+        res.status(201).json({ success: true, orderSerial });
 
     } catch (error) {
         console.error(error);
@@ -288,15 +352,12 @@ app.post('/api/orders', authenticateToken, upload.array('actualFiles'), async (r
 
 
 // ------------------------------------------------------------
-// API 3: LIVE QUEUE — Abhi ke pending orders dikhao
+// ORDER 2: ADMIN KE LIYE FULL QUEUE — Token + Admin role zaroori
 // GET /api/orders/queue
-// Admin dashboard aur student queue dono yahi use karte hain
+// Sirf admin dekh sakta hai — student ko puri list nahi milegi
 // ------------------------------------------------------------
-app.get('/api/orders/queue', async (req, res) => {
+app.get('/api/orders/queue', authenticateToken, isAdmin, async (req, res) => {
     try {
-        // Sirf "In Queue" wale orders nikalo
-        // .populate = userId ki jagah asli user ka naam aur phone lao
-        // .sort = purane orders pehle (FIFO — pehle aao pehle pao)
         const activeOrders = await Order.find({ orderStatus: 'In Queue' })
                                         .populate('userId', 'fullName phone')
                                         .sort({ createdAt: 1 });
@@ -310,22 +371,58 @@ app.get('/api/orders/queue', async (req, res) => {
 
 
 // ------------------------------------------------------------
-// API 4: ORDER COMPLETE KARO — Admin "Print & Complete" dabata hai
-// PUT /api/orders/:id/complete
-// :id = us order ka MongoDB ID jo complete ho gaya
+// ORDER 3: STUDENT KE LIYE SIRF COUNT — Token zaroori, data nahi
+// GET /api/orders/queue-count
+// Student ko sirf apna wait time pata chalega — kisi ka naam/file nahi
 // ------------------------------------------------------------
-app.put('/api/orders/:id/complete', async (req, res) => {
+app.get('/api/orders/queue-count', authenticateToken, async (req, res) => {
     try {
-        const orderId = req.params.id; // URL se order ID nikalo
+        const activeOrders = await Order.find({ orderStatus: 'In Queue' })
+                                        .select('files createdAt')  // Sirf files aur time — naam/phone nahi
+                                        .sort({ createdAt: 1 });
 
-        // Us order ko dhundo aur status update karo
+        res.status(200).json({
+            success:  true,
+            count:    activeOrders.length,
+            // Wait time calculate karne ke liye sirf pages/copies chahiye
+            waitData: activeOrders.map(o => ({ files: o.files }))
+        });
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+// ------------------------------------------------------------
+// ORDER 4: FILE DOWNLOAD — Token zaroori, sirf admin dekh sake
+// GET /api/files/:filename
+// Direct /uploads/ URL accessible nahi — yahan se milegi file
+// ------------------------------------------------------------
+app.get('/api/files/:filename', authenticateToken, isAdmin, (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, 'uploads', filename);
+
+    // File exist karti hai?
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ success: false, error: 'File not found' });
+    }
+
+    res.sendFile(filePath);
+});
+
+
+// ------------------------------------------------------------
+// ORDER 5: ORDER COMPLETE KARO — Token + Admin zaroori
+// PUT /api/orders/:id/complete
+// ------------------------------------------------------------
+app.put('/api/orders/:id/complete', authenticateToken, isAdmin, async (req, res) => {
+    try {
         const updatedOrder = await Order.findByIdAndUpdate(
-            orderId,
-            { orderStatus: 'Ready', readyAt: Date.now() }, // Status badlo, time note karo
-            { returnDocument: 'after' }                    // Updated order wapas bhejo
+            req.params.id,
+            { orderStatus: 'Ready', readyAt: Date.now() },
+            { returnDocument: 'after' }
         );
-
-        // TODO: Future me yahan WhatsApp API chalegi — student ko message jaayega
 
         res.status(200).json({ success: true, message: 'Order marked as ready', data: updatedOrder });
 
@@ -336,31 +433,25 @@ app.put('/api/orders/:id/complete', async (req, res) => {
 
 
 // ------------------------------------------------------------
-// API 5: CLEAR HISTORY — Admin din ke end me sab saaf karta hai
+// ORDER 6: CLEAR HISTORY — Token + Admin zaroori
 // DELETE /api/orders/clear
-// Do kaam: 1) Database ke orders delete, 2) Uploads folder saaf
 // ------------------------------------------------------------
-app.delete('/api/orders/clear', async (req, res) => {
+app.delete('/api/orders/clear', authenticateToken, isAdmin, async (req, res) => {
     try {
-        // 1. Database se saare orders delete karo
         await Order.deleteMany({});
 
-        // 2. Uploads folder se saari PDF files delete karo (storage free karo)
         const directory = path.join(__dirname, 'uploads');
+        const files     = fs.readdirSync(directory);
 
-        // Folder me ki saari files ki list nikalo
-        const files = fs.readdirSync(directory);
-
-        // Har file ko ek ek karke delete karo
         for (const file of files) {
             try {
-                fs.unlinkSync(path.join(directory, file)); // Ek file delete karo
+                fs.unlinkSync(path.join(directory, file));
             } catch (fileErr) {
-                console.error("File delete nahi ho payi:", fileErr); // Error aaye toh skip karo
+                console.error("File delete nahi ho payi:", fileErr);
             }
         }
 
-        res.status(200).json({ success: true, message: 'Database and Uploads folder cleared!' });
+        res.status(200).json({ success: true, message: 'Database and Uploads cleared!' });
 
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -369,19 +460,15 @@ app.delete('/api/orders/clear', async (req, res) => {
 
 
 // ============================================================
-// AUTO CLEANUP — Roz raat 12 baje apne aap sab saaf hoga
-// Cron format: 'minute hour day month weekday'
-// '0 0 * * *' matlab: minute=0, hour=0 (12 AM), baaki roz
+// AUTO CLEANUP — Roz raat 12 baje
 // ============================================================
 cron.schedule('0 0 * * *', async () => {
-    console.log("🕛 Midnight Alert: Automatically resetting orders and clearing storage...");
+    console.log("🕛 Midnight Auto-reset starting...");
     try {
-        // 1. Database ke saare orders delete karo
         await Order.deleteMany({});
 
-        // 2. Uploads folder ki saari files delete karo
         const directory = path.join(__dirname, 'uploads');
-        const files = fs.readdirSync(directory);
+        const files     = fs.readdirSync(directory);
         for (const file of files) {
             fs.unlinkSync(path.join(directory, file));
         }
@@ -394,7 +481,7 @@ cron.schedule('0 0 * * *', async () => {
 
 
 // ============================================================
-// SERVER START KARO
+// SERVER START
 // ============================================================
 app.listen(PORT, () => {
     console.log(`🚀 QuickPrint Server running on http://localhost:${PORT}`);
