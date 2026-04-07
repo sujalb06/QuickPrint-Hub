@@ -164,7 +164,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
         }
 
         // 4-digit OTP generate karo
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        // const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        const otp = 1234;
 
         // OTP store karo — 5 minute ke liye valid
         otpStore[phone] = {
