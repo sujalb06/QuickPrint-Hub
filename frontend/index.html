@@ -8,22 +8,29 @@
 </head>
 <body>
         
-        <div class="login-wrapper">
+        <!-- ============================================================
+         LOGIN CARD — Page ke center mein ek white box
+         Iske andar 2 steps hain:
+           Step 1: Naam + Phone number
+           Step 2: OTP enter karo
+         ============================================================ -->
+    <div class="login-wrapper">
         <div class="login-card">
  
+            <!-- Logo aur app naam -->
             <div class="logo-container">
                 <div class="logo-icon">🖨️</div>
                 <h1>QuickPrint Hub</h1>
                 <p>Skip the queue, print smarter.</p>
             </div>
  
-            <!-- Role Tabs -->
+            <!-- Role Tabs — Student ya Shopkeeper choose karo -->
             <div class="role-tabs">
                 <button type="button" class="tab-btn active" id="userTab"  onclick="switchRole('user')">Student</button>
-                <button type="button" class="tab-btn" id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
+                <button type="button" class="tab-btn"        id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
             </div>
  
-            <!-- STEP 1: Naam + Number -->
+            <!-- STEP 1: Naam + Phone (default visible) -->
             <div id="step1">
                 <div class="input-group">
                     <label>Full Name</label>
@@ -41,8 +48,9 @@
                 </button>
             </div>
  
-            <!-- STEP 2: OTP (pehle hidden) -->
+            <!-- STEP 2: OTP verify (pehle hidden, JS se dikhega) -->
             <div id="step2" class="hidden">
+                <!-- "OTP bheja +91 XXXXX pe" message -->
                 <p class="otp-sent-msg" id="otpSentMsg"></p>
                 <div class="input-group">
                     <label>Enter OTP</label>
@@ -50,12 +58,12 @@
                         <span class="code-icon">🔑</span>
                         <input type="text" id="otpInput" placeholder="ENTER OTP" maxlength="6" autocomplete="one-time-code">
                     </div>
+                    <!-- Resend countdown ya resend link yahan aayega -->
                     <p class="help-text" id="resendTimer"></p>
                 </div>
                 <button type="button" class="btn success-btn w-100" onclick="verifyOTP()">
                     Verify & Login 🔒
                 </button>
-                <!-- <button type="button" class="btn-back" onclick="goBack()">← Change Number</button> -->
             </div>
  
         </div>

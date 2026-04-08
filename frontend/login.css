@@ -1,26 +1,52 @@
-/* Google Fonts */
+/* ============================================================
+   QUICKPRINT - LOGIN PAGE STYLES (login.css)
+   Kya cover karta hai:
+     - Page ka center layout (login card beech mein)
+     - Logo aur branding
+     - Role tabs (Student / Shopkeeper)
+     - Input fields (naam, phone, OTP)
+     - Buttons (Send OTP, Verify)
+     - Mobile responsive
+   ============================================================ */
+
+/* Google ka Inter font import karo */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* ============================================================
+   CSS VARIABLES — Colors aur common values ek jagah
+   Yahan se change karo toh puri site pe change ho jaayega
+   ============================================================ */
 :root {
-    --primary:       #0ea5e9;
-    --primary-hover: #0284c7;
-    --success:       #10b981;
-    --success-hover: #059669;
-    --bg-color:      #f1f5f9;
-    --card-bg:       #ffffff;
-    --text-main:     #0f172a;
-    --text-muted:    #64748b;
-    --border-color:  #e2e8f0;
-    --radius:        16px;
-    --shadow-lg:     0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    --primary:       #0ea5e9;  /* Blue — Send OTP button */
+    --primary-hover: #0284c7;  /* Darker blue — hover pe */
+    --success:       #10b981;  /* Green — Verify button */
+    --success-hover: #059669;  /* Darker green — hover pe */
+    --bg-color:      #f1f5f9;  /* Light grey background */
+    --card-bg:       #ffffff;  /* White card */
+    --text-main:     #0f172a;  /* Dark text */
+    --text-muted:    #64748b;  /* Grey text (labels, hints) */
+    --border-color:  #e2e8f0;  /* Input borders */
+    --radius:        16px;     /* Card corners ki roundness */
+    --shadow-lg:     0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); /* Card shadow */
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+/* Sab elements ka default margin/padding hatao */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
 
+/* ============================================================
+   BODY — Dotted background + center layout
+   ============================================================ */
 body {
     background-color: var(--bg-color);
+    /* Halka dotted pattern background mein */
     background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
     background-size: 30px 30px;
+    /* Login card ko screen ke beech mein rakhna */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,9 +54,18 @@ body {
     color: var(--text-main);
 }
 
-/* Layout */
-.login-wrapper { width: 100%; max-width: 440px; padding: 20px; }
+/* ============================================================
+   LAYOUT — Wrapper aur Card
+   ============================================================ */
 
+/* Wrapper: Max width set karo, sides pe padding */
+.login-wrapper {
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+}
+
+/* Card: White box with shadow */
 .login-card {
     background: var(--card-bg);
     padding: 40px 35px;
@@ -39,104 +74,287 @@ body {
     border: 1px solid rgba(255,255,255,0.5);
 }
 
-/* Branding */
-.logo-container { text-align: center; margin-bottom: 30px; }
-.logo-icon { font-size: 3rem; margin-bottom: 10px; }
-.logo-container h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 5px; }
-.logo-container p  { font-size: 0.9rem; color: var(--text-muted); }
+/* ============================================================
+   LOGO / BRANDING — Top mein printer icon aur app naam
+   ============================================================ */
+.logo-container {
+    text-align: center;
+    margin-bottom: 30px;
+}
 
-/* Role Tabs */
-.role-tabs { display: flex; background: var(--bg-color); border-radius: 10px; margin-bottom: 25px; padding: 5px; }
+.logo-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.logo-container h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 5px;
+}
+
+.logo-container p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   ROLE TABS — Student / Shopkeeper switch
+   ============================================================ */
+.role-tabs {
+    display: flex;
+    background: var(--bg-color);
+    border-radius: 10px;
+    margin-bottom: 25px;
+    padding: 5px;
+}
+
 .tab-btn {
-    flex: 1; padding: 12px; border: none; background: transparent;
-    border-radius: 8px; font-weight: 600; font-size: 0.95rem;
-    color: var(--text-muted); cursor: pointer; transition: all 0.3s ease;
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
-.tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-/* Form */
-.input-group { margin-bottom: 20px; }
-.input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+/* Active tab (selected wala) — white background aur blue text */
+.tab-btn.active {
+    background: var(--card-bg);
+    color: var(--primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* ============================================================
+   FORM INPUTS — Naam, Phone, OTP fields
+   ============================================================ */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
 .input-group input {
-    width: 100%; padding: 12px 16px; border: 1.5px solid var(--border-color);
-    border-radius: 8px; font-size: 0.95rem; color: var(--text-main);
-    outline: none; transition: border-color 0.3s, box-shadow 0.3s;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
-.input-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
 
-/* Phone wrapper */
+/* Focus pe blue border aur glow */
+.input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+}
+
+/* ============================================================
+   PHONE INPUT — "+91" prefix ke saath
+   ============================================================ */
 .phone-input-wrapper {
-    display: flex; border: 1.5px solid var(--border-color);
-    border-radius: 8px; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s;
+    display: flex;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden; /* Corners round dikhein */
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
-.phone-input-wrapper:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+
+/* Wrapper focus pe blue border */
+.phone-input-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+}
+
+/* "+91" prefix ka style */
 .country-code {
-    background: #f8fafc; padding: 12px 16px; font-weight: 600;
-    color: var(--text-muted); border-right: 1.5px solid var(--border-color); font-size: 0.95rem; white-space: nowrap;
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-right: 1.5px solid var(--border-color);
+    font-size: 0.95rem;
+    white-space: nowrap;
 }
-.phone-input-wrapper input { border: none; border-radius: 0; margin: 0; box-shadow: none !important; }
 
-/* OTP wrapper */
+/* Phone input ke andar wala actual input — border hatao (wrapper mein hai already) */
+.phone-input-wrapper input {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none !important;
+}
+
+/* ============================================================
+   OTP INPUT — Key icon ke saath, digits spaced
+   ============================================================ */
 .otp-input-wrapper {
-    display: flex; border: 1.5px solid var(--border-color);
-    border-radius: 8px; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s;
+    display: flex;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/* OTP input ke placeholder text ko normal karne ke liye */
+/* Placeholder text normal dikhega (digits jaisa nahi) */
 .otp-input-wrapper input::placeholder {
-    letter-spacing: normal;   /* Gap hata dega */
-    font-weight: 400;         /* Text ko normal patla kar dega */
-    font-size: 0.95rem;       /* Baaki inputs jaisa size kar dega */
+    letter-spacing: normal;
+    font-weight: 400;
+    font-size: 0.95rem;
 }
 
+/* Focus pe green border (OTP = success action) */
+.otp-input-wrapper:focus-within {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+}
 
-.otp-input-wrapper:focus-within { border-color: var(--success); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+/* 🔑 icon */
 .code-icon {
-    background: #f0fdf4; padding: 12px 14px; font-size: 1rem;
-    border-right: 1.5px solid var(--border-color); display: flex; align-items: center;
+    background: #f0fdf4;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border-right: 1.5px solid var(--border-color);
+    display: flex;
+    align-items: center;
 }
+
+/* OTP digits — bade aur spaced dikhein */
 .otp-input-wrapper input {
-    border: none; border-radius: 0; margin: 0; box-shadow: none !important;
-    letter-spacing: 8px; font-weight: 700; font-size: 1.2rem; text-align: center;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none !important;
+    letter-spacing: 8px;   /* Digits ke beech gap */
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-align: center;
 }
 
-/* OTP sent message */
+/* ============================================================
+   OTP SENT MESSAGE — "OTP bheja +91 XXXXX pe"
+   ============================================================ */
 .otp-sent-msg {
-    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
-    padding: 10px 14px; font-size: 0.85rem; color: #166534;
-    margin-bottom: 20px; line-height: 1.5;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #166534; /* Dark green text */
+    margin-bottom: 20px;
+    line-height: 1.5;
 }
 
-/* Help text + resend */
-.help-text { font-size: 0.82rem; color: var(--text-muted); margin-top: 8px; text-align: right; }
-.help-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+/* ============================================================
+   HELP TEXT + RESEND LINK
+   ============================================================ */
+.help-text {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: right;
+}
 
-/* Buttons */
-.btn { padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-.primary-btn { background: var(--primary); color: white; }
-.primary-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
-.primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-.success-btn { background: var(--success); color: white; }
-.success-btn:hover { background: var(--success-hover); transform: translateY(-1px); }
-.w-100 { width: 100%; }
+.help-text a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
 
-/* Back button */
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Blue button — Send OTP */
+.primary-btn {
+    background: var(--primary);
+    color: white;
+}
+
+.primary-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px); /* Thoda upar uthega hover pe */
+}
+
+.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Green button — Verify & Login */
+.success-btn {
+    background: var(--success);
+    color: white;
+}
+
+.success-btn:hover {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+}
+
+/* Full width button */
+.w-100 {
+    width: 100%;
+}
+
+/* Back button — transparent, outlined */
 .btn-back {
-    display: block; width: 100%; margin-top: 12px; padding: 10px;
-    background: transparent; border: 1.5px solid var(--border-color);
-    border-radius: 8px; font-size: 0.9rem; font-weight: 500;
-    color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
 }
-.btn-back:hover { background: var(--bg-color); color: var(--text-main); }
 
-/* Hidden */
-.hidden { display: none !important; }
+.btn-back:hover {
+    background: var(--bg-color);
+    color: var(--text-main);
+}
 
-/* Mobile */
+/* ============================================================
+   HIDDEN CLASS — JS se show/hide ke liye
+   ============================================================ */
+.hidden {
+    display: none !important;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE — Chote screen pe adjustments
+   ============================================================ */
 @media (max-width: 480px) {
-    .login-card { padding: 28px 20px; }
-    .logo-icon { font-size: 2.2rem; }
+    .login-card    { padding: 28px 20px; }
+    .logo-icon     { font-size: 2.2rem; }
     .logo-container h1 { font-size: 1.3rem; }
-    .tab-btn { padding: 10px 8px; font-size: 0.88rem; }
-    .btn { padding: 13px; font-size: 0.95rem; }
+    .tab-btn       { padding: 10px 8px; font-size: 0.88rem; }
+    .btn           { padding: 13px; font-size: 0.95rem; }
 }

@@ -1,42 +1,42 @@
 // ============================================================
-// QUICKPRINT - LOGIN SCRIPT
-// Model: Naam + Number → OTP → LocalStorage mein save
-// Koi user database nahi — cache clear = sab saaf
-// Admin ke liye number whitelist check (server side)
+// QUICKPRINT - LOGIN PAGE SCRIPT (login.js)
+// Flow: Naam + Number daalo → OTP aayega → OTP verify karo → Dashboard
+// Student = user.html, Admin = admin.html
 // ============================================================
 
-let currentRole = 'user';
-let resendTimer = null;
-
+let currentRole = 'user'; // Default: Student selected
+let resendTimer = null;   // OTP resend countdown timer ka reference
 
 // ============================================================
-// PAGE LOAD — Agar localStorage mein session hai toh seedha bhejo
+// PAGE LOAD — Agar pehle se logged in hai toh seedha bhejo
 // ============================================================
 window.onload = function () {
     const token = localStorage.getItem('quickprint_token');
     const user  = localStorage.getItem('quickprint_user');
 
     if (token && user) {
-        const u = JSON.parse(user);
-        // Session valid hai — seedha dashboard pe bhejo
-        window.location.href = u.role === 'admin' ? 'admin.html' : 'user.html';
+        const userData = JSON.parse(user);
+        // Admin → admin.html, Student → user.html
+        window.location.href = userData.role === 'admin' ? 'admin.html' : 'user.html';
     }
 };
 
-
 // ============================================================
-// ROLE SWITCH — Student ya Shopkeeper tab
+// ROLE SWITCH — "Student" ya "Shopkeeper" tab click hone pe
 // ============================================================
 function switchRole(role) {
     currentRole = role;
+
+    // Active tab highlight karo
     document.getElementById('userTab').classList.toggle('active', role === 'user');
     document.getElementById('adminTab').classList.toggle('active', role === 'admin');
-    resetForm();
+
+    resetForm(); // Form saaf karo
 }
 
-
 // ============================================================
-// STEP 1 — OTP bhejo
+// STEP 1 — "Send OTP" button click
+// Server pe number bhejo, OTP mangao
 // ============================================================
 async function sendOTP() {
     const name  = document.getElementById('fullName').value.trim();
@@ -52,17 +52,17 @@ async function sendOTP() {
         return;
     }
 
+    // Button disable karo taaki double click na ho
     const btn = document.getElementById('sendOtpBtn');
     btn.innerHTML = 'Sending OTP... ⏳';
     btn.disabled  = true;
 
     try {
-        const res  = await fetch('https://quickprint-hub.onrender.com/api/auth/send-otp', {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/send-otp', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ phone, role: currentRole })
-            // Note: Admin ke liye backend whitelist check karega
-            // Agar number approved nahi — error aayega
+            // Admin ke liye: server check karega ki number whitelist mein hai ya nahi
         });
         const data = await res.json();
 
@@ -72,29 +72,28 @@ async function sendOTP() {
             document.getElementById('step2').classList.remove('hidden');
             document.getElementById('otpSentMsg').innerText =
                 `OTP bheja +91 ${phone} pe. (Testing OTP: ${data.otp})`;
-            startResendTimer();
+            startResendTimer(); // 30 second countdown shuru karo
         } else {
-            // Admin ke liye: "Number not authorized" aayega
             alert(data.error || 'OTP nahi bheja ja saka');
             btn.innerHTML = 'Send OTP';
             btn.disabled  = false;
         }
 
     } catch (e) {
-        alert('Server se connect nahi ho paya. Check karo ki server chal raha hai.');
+        alert('Server se connect nahi ho paya.');
         btn.innerHTML = 'Send OTP';
         btn.disabled  = false;
     }
 }
 
-
 // ============================================================
-// STEP 2 — OTP verify karo
+// STEP 2 — "Verify & Login" button click
+// OTP verify karo, token lo, dashboard pe jao
 // ============================================================
 async function verifyOTP() {
-    const phone = document.getElementById('phone').value.trim();
-    const fullnamevalue  = document.getElementById('fullName').value.trim();
-    const otp   = document.getElementById('otpInput').value.trim();
+    const phone    = document.getElementById('phone').value.trim();
+    const fullName = document.getElementById('fullName').value.trim();
+    const otp      = document.getElementById('otpInput').value.trim();
 
     if (!otp) {
         alert('OTP daalo');
@@ -102,18 +101,18 @@ async function verifyOTP() {
     }
 
     try {
-        const res  = await fetch('https://quickprint-hub.onrender.com/api/auth/verify-otp', {
+        const res = await fetch('https://quickprint-hub.onrender.com/api/auth/verify-otp', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ phone, otp, fullName: fullnamevalue, role: currentRole })
+            body:    JSON.stringify({ phone, otp, fullName, role: currentRole })
         });
         const data = await res.json();
 
         if (data.success) {
             clearInterval(resendTimer);
 
-            // LocalStorage mein save karo — yahi "session" hai
-            // Cache clear = ye sab chala jaayega = logout
+            // Token aur user info localStorage mein save karo
+            // Ye hi "session" hai — browser close = logout nahi, cache clear = logout
             localStorage.setItem('quickprint_token', data.token);
             localStorage.setItem('quickprint_user',  JSON.stringify(data.user));
 
@@ -129,9 +128,8 @@ async function verifyOTP() {
     }
 }
 
-
 // ============================================================
-// BACK BUTTON — Step 1 pe wapas jao
+// BACK BUTTON — Step 2 se Step 1 pe wapas
 // ============================================================
 function goBack() {
     document.getElementById('step2').classList.add('hidden');
@@ -144,42 +142,42 @@ function goBack() {
     btn.disabled  = false;
 }
 
-
 // ============================================================
 // RESEND TIMER — 30 second countdown
+// Timer khatam hone pe "Resend OTP" link dikhega
 // ============================================================
 function startResendTimer() {
     let seconds = 30;
-    const el    = document.getElementById('resendTimer');
-    el.innerText = `Resend in ${seconds}s`;
+    const timerEl = document.getElementById('resendTimer');
+    timerEl.innerText = `Resend in ${seconds}s`;
 
     resendTimer = setInterval(() => {
         seconds--;
-        el.innerText = `Resend in ${seconds}s`;
+        timerEl.innerText = `Resend in ${seconds}s`;
+
         if (seconds <= 0) {
             clearInterval(resendTimer);
-            el.innerHTML = `<a href="#" onclick="resendOTP(); return false;">Resend OTP</a>`;
+            timerEl.innerHTML = `<a href="#" onclick="resendOTP(); return false;">Resend OTP</a>`;
         }
     }, 1000);
 }
 
+// Resend button click — form reset karke phir se OTP bhejo
 async function resendOTP() {
     document.getElementById('otpInput').value = '';
     goBack();
-    // Thodi der baad automatically sendOTP call karo
-    setTimeout(() => sendOTP(), 300);
+    setTimeout(() => sendOTP(), 300); // Thodi der baad automatically OTP bhejo
 }
 
-
 // ============================================================
-// FORM RESET — Tab switch pe
+// FORM RESET — Tab switch pe saaf karo
 // ============================================================
 function resetForm() {
     document.getElementById('step1').classList.remove('hidden');
     document.getElementById('step2').classList.add('hidden');
-    document.getElementById('fullName').value  = '';
-    document.getElementById('phone').value     = '';
-    document.getElementById('otpInput').value  = '';
+    document.getElementById('fullName').value = '';
+    document.getElementById('phone').value    = '';
+    document.getElementById('otpInput').value = '';
 
     const btn = document.getElementById('sendOtpBtn');
     btn.innerHTML = 'Send OTP';

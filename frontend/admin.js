@@ -1,27 +1,28 @@
 // ============================================================
-// QUICKPRINT - ADMIN DASHBOARD SCRIPT
-// Fixes:
-// 1. Bina login ke access ho raha tha — backend verify lagaya
-// 2. File download — fetch + Blob se khulegi (token ke saath)
-// 3. Auto-refresh — setInterval se har 8 second mein silently
+// QUICKPRINT - ADMIN DASHBOARD SCRIPT (admin.js)
+// Kya karta hai:
+//   - Admin ka login verify karo (localStorage + backend)
+//   - Queue ke orders dikhao (har 8 second mein auto-refresh)
+//   - File download/view karo (fetch + Blob se, token ke saath)
+//   - Order complete karo ya history clear karo
 // ============================================================
 
-let activeOrders         = [];
-let completedOrdersCount = 0;
-let totalOrdersEver      = 0;
-let todayRevenue         = 0;
-let autoRefreshInterval  = null;
+let activeOrders         = [];  // Abhi queue mein jo orders hain
+let completedOrdersCount = 0;   // Aaj kitne complete hue
+let totalOrdersEver      = 0;   // Total count (active + completed)
+let todayRevenue         = 0;   // Aaj ki kamaai
+let autoRefreshInterval  = null; // setInterval ka reference (clear karne ke liye)
 
 const BASE_URL = 'https://quickprint-hub.onrender.com';
 
 // ============================================================
-// PAGE LOAD — Strict login check
+// PAGE LOAD — Login check karo, phir queue load karo
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     const savedUser = localStorage.getItem('quickprint_user');
     const token     = localStorage.getItem('quickprint_token');
 
-    // LocalStorage mein nahi — seedha login pe
+    // LocalStorage mein nahi hai → login pe bhejo
     if (!savedUser || !token) {
         window.location.href = 'index.html';
         return;
@@ -29,81 +30,80 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const user = JSON.parse(savedUser);
 
-    // LocalStorage role check (fast check)
+    // Role check (fast check — localStorage se)
     if (user.role !== 'admin') {
         alert('Access Denied! Only Admins have access to view the page.');
         window.location.href = 'index.html';
         return;
     }
 
-    // Backend se bhi verify karo — token sahi hai ya nahi
-    // Ye FIX hai: pehle sirf localStorage check tha jo hack ho sakta tha
-    const valid = await verifyTokenWithBackend(token);
-    if (!valid) {
+    // Backend se bhi verify karo — token actually valid hai ya nahi
+    // (LocalStorage mein role change karke bypass rokne ke liye)
+    const isValid = await verifyTokenWithBackend(token);
+    if (!isValid) {
         localStorage.clear();
         window.location.href = 'index.html';
         return;
     }
 
-    // Sab theek — queue load karo aur auto-refresh shuru karo
-    await fetchLiveQueue();
-    startAutoRefresh();
+    await fetchLiveQueue();  // Pehli baar orders load karo
+    startAutoRefresh();      // Auto-refresh shuru karo
 });
 
 // ============================================================
-// BACKEND TOKEN VERIFY — Ek simple API call se check
+// BACKEND TOKEN VERIFY — Ek API call se token check karo
+// Agar server down hai toh allow karo (offline case)
 // ============================================================
 async function verifyTokenWithBackend(token) {
     try {
         const res = await fetch(`${BASE_URL}/api/orders/queue`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        // 401/403 = token invalid ya admin nahi
+        // 401 = token invalid, 403 = admin nahi
         return res.status !== 401 && res.status !== 403;
     } catch (e) {
-        // Server down hai — allow karo (offline case)
-        return true;
+        return true; // Server down → allow karo
     }
 }
 
 // ============================================================
 // AUTO-REFRESH — Har 8 second mein silently queue update
-// Bina page refresh ke — sirf naye orders aane pe UI update hoga
 // ============================================================
 function startAutoRefresh() {
-    // Pehle clear karo agar pehle se chal raha tha
-    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval); // Pehle se chal raha tha toh band karo
 
     autoRefreshInterval = setInterval(async () => {
-        await fetchLiveQueue(true); // true = silent (no alert on error)
-    }, 8000); // 8 second
+        await fetchLiveQueue(true); // true = silent mode (error pe alert nahi)
+    }, 8000);
 }
 
 // ============================================================
-// QUEUE FETCH
+// QUEUE FETCH — Server se active orders lo
 // silent = true hoga toh error pe alert nahi aayega
 // ============================================================
 async function fetchLiveQueue(silent = false) {
     const token = localStorage.getItem('quickprint_token');
 
     try {
-        const response = await fetch(`${BASE_URL}/api/orders/queue`, {
+        const res = await fetch(`${BASE_URL}/api/orders/queue`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (response.status === 401 || response.status === 403) {
+        // Token expire → logout karo
+        if (res.status === 401 || res.status === 403) {
             clearInterval(autoRefreshInterval);
             localStorage.clear();
             window.location.href = 'index.html';
             return;
         }
 
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.success) {
+            // Server ka data → apne format mein convert karo
             activeOrders = data.data.map(dbOrder => ({
-                _id:         dbOrder._id,
-                id:          dbOrder.orderSerial,
+                _id:         dbOrder._id,          // MongoDB ID (complete/delete ke liye)
+                id:          dbOrder.orderSerial,   // Dikhne wala number (0001)
                 time:        new Date(dbOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 studentName: dbOrder.studentName,
                 phone:       dbOrder.studentPhone,
@@ -113,13 +113,15 @@ async function fetchLiveQueue(silent = false) {
                     color:    f.colorType,
                     side:     f.printSide,
                     copies:   f.copies,
-                    filename: f.fileUrl  // Sirf filename — URL fetch() se banega
+                    filename: f.fileUrl  // Sirf filename — fetch ke liye kaam aayega
                 })),
                 total: dbOrder.totalAmount
             }));
 
             totalOrdersEver = activeOrders.length + completedOrdersCount;
-            renderOrders(document.getElementById('searchOrder').value); // Search filter maintain karo
+
+            // Search filter maintain karo — apne aap clear na ho
+            renderOrders(document.getElementById('searchOrder').value);
             updateStats();
         }
 
@@ -130,11 +132,14 @@ async function fetchLiveQueue(silent = false) {
 }
 
 // ============================================================
-// ORDERS RENDER
+// ORDERS RENDER — Screen pe order cards dikhao
+// Smart update: Sirf naye orders add karo, poora re-render nahi
+// (Flickering rokne ke liye — auto-refresh pe kaam aata hai)
 // ============================================================
 function renderOrders(filterText = '') {
     const container = document.getElementById('ordersContainer');
 
+    // Search filter apply karo
     const filtered = activeOrders.filter(order =>
         order.id.includes(filterText) ||
         order.studentName.toLowerCase().includes(filterText.toLowerCase())
@@ -145,23 +150,24 @@ function renderOrders(filterText = '') {
         return;
     }
 
-    // Sirf naye/changed cards update karo — poora innerHTML replace nahi
-    // Ye flickering rokta hai auto-refresh pe
+    // Screen pe abhi kaunse cards hain
     const existingIds = new Set([...container.querySelectorAll('.order-card')].map(c => c.id));
+    // Naye data mein kaunse hone chahiye
     const newIds      = new Set(filtered.map(o => `order-${o.id}`));
 
-    // Hata diye gaye orders remove karo
-    existingIds.forEach(id => {
-        if (!newIds.has(id)) {
-            const el = document.getElementById(id);
+    // Jo orders complete ho gaye unke cards hatao
+    existingIds.forEach(cardId => {
+        if (!newIds.has(cardId)) {
+            const el = document.getElementById(cardId);
             if (el) el.remove();
         }
     });
 
-    // Naye orders add karo
+    // Naye orders ke cards add karo (jo pehle se hain unhe skip karo)
     filtered.forEach(order => {
-        if (existingIds.has(`order-${order.id}`)) return; // Pehle se hai — skip
+        if (existingIds.has(`order-${order.id}`)) return; // Pehle se screen pe hai
 
+        // Is order ki files ka HTML banao
         const filesHtml = order.files.map(file => `
             <div class="file-item-stacked">
                 <div class="file-line-1">
@@ -174,11 +180,9 @@ function renderOrders(filterText = '') {
                     <span class="badge-qty">Qty: ${file.copies || 1}</span>
                 </div>
                 <div class="file-line-3">
-                    <!-- 
-                        FIX: <a href="..."> ki jagah button use kiya
-                        Kyunki browser Authorization header nahi bhej sakta <a> tag se
-                        openFile() function fetch() se Blob banata hai aur new tab mein kholta hai
-                    -->
+                    <!-- Button use kiya hai <a href> ki jagah -->
+                    <!-- Kyunki <a href> se Authorization header nahi jaata -->
+                    <!-- openFile() function fetch() se token bhejta hai -->
                     <button class="btn-download-small" onclick="openFile('${file.filename}')">
                         ⬇️ Download / View
                     </button>
@@ -186,6 +190,7 @@ function renderOrders(filterText = '') {
             </div>
         `).join('');
 
+        // Order card HTML
         container.insertAdjacentHTML('beforeend', `
             <div class="order-card" id="order-${order.id}">
                 <div class="order-header">
@@ -209,42 +214,40 @@ function renderOrders(filterText = '') {
 }
 
 // ============================================================
-// FILE OPEN — fetch() + Blob = new tab mein khulegi
-// Ye FIX hai: <a href="url"> se token nahi jaata
-// Yahan hum fetch() se token bhejte hain, response ko Blob banate hain
-// Blob ka Object URL new tab mein khol dete hain
+// FILE OPEN — Token ke saath file fetch karo, new tab mein kholo
+// Kyunki <a href="..."> se Authorization header nahi jaata
+// Isliye fetch() se file lo → Blob banao → Object URL → new tab
 // ============================================================
 async function openFile(filename) {
     const token = localStorage.getItem('quickprint_token');
-    const btn   = event.target; // Kaunsa button click hua
+    const btn   = event.target;
 
     btn.innerHTML = '⏳ Loading...';
     btn.disabled  = true;
 
     try {
-        const response = await fetch(`${BASE_URL}/api/files/${filename}`, {
+        const res = await fetch(`${BASE_URL}/api/files/${filename}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
             alert(err.error || 'Unable to open the file.');
             return;
         }
 
-        // Response ko Blob (binary data) mein convert karo
-        const blob      = await response.blob();
-        // Blob ka temporary URL banao
+        // Response ko binary data (Blob) mein convert karo
+        const blob = await res.blob();
+        // Blob ka temporary browser URL banao
         const objectUrl = URL.createObjectURL(blob);
 
-        // New tab mein kholo
-        window.open(objectUrl, '_blank');
+        window.open(objectUrl, '_blank'); // New tab mein kholo
 
-        // 1 minute baad temporary URL free karo
+        // 1 minute baad ye temporary URL free karo (memory bachao)
         setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
 
     } catch (error) {
-        alert('Error occured in opening the file.');
+        alert('Error opening the file.');
         console.error('File open error:', error);
     } finally {
         btn.innerHTML = '⬇️ Download / View';
@@ -253,35 +256,38 @@ async function openFile(filename) {
 }
 
 // ============================================================
-// STATS UPDATE
+// STATS UPDATE — Top cards update karo
 // ============================================================
 function updateStats() {
     document.getElementById('totalOrdersCount').innerText  = totalOrdersEver;
     document.getElementById('pendingQueueCount').innerText = activeOrders.length;
     document.getElementById('completedCount').innerText    = completedOrdersCount;
-    const rev = document.getElementById('revenueCount');
-    if (rev) rev.innerText = `₹${todayRevenue.toFixed(2)}`;
+
+    const revenueEl = document.getElementById('revenueCount');
+    if (revenueEl) revenueEl.innerText = `₹${todayRevenue.toFixed(2)}`;
 }
 
 // ============================================================
-// ORDER COMPLETE
+// ORDER COMPLETE — "Print & Complete" button click
 // ============================================================
 async function markComplete(dbId, serialNum) {
     const token = localStorage.getItem('quickprint_token');
 
     try {
-        const response = await fetch(`${BASE_URL}/api/orders/${dbId}/complete`, {
+        const res = await fetch(`${BASE_URL}/api/orders/${dbId}/complete`, {
             method:  'PUT',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.success) {
-            const done = activeOrders.find(o => o._id === dbId);
-            if (done) todayRevenue += done.total;
+            // Revenue mein add karo
+            const completedOrder = activeOrders.find(o => o._id === dbId);
+            if (completedOrder) todayRevenue += completedOrder.total;
+
             completedOrdersCount++;
             alert(`Order #${serialNum} Completed! ✅`);
-            await fetchLiveQueue();
+            await fetchLiveQueue(); // Queue refresh karo
         }
     } catch (error) {
         console.error('Complete error:', error);
@@ -289,20 +295,21 @@ async function markComplete(dbId, serialNum) {
 }
 
 // ============================================================
-// CLEAR HISTORY
+// CLEAR HISTORY — Saara data delete karo (naye din ke liye reset)
 // ============================================================
 async function clearOrderHistory() {
     const token = localStorage.getItem('quickprint_token');
-    if (!confirm('⚠️ All orders will be clear. Are you sure ?')) return;
+    if (!confirm('⚠️ All orders will be cleared. Are you sure?')) return;
 
     try {
-        const response = await fetch(`${BASE_URL}/api/orders/clear`, {
+        const res = await fetch(`${BASE_URL}/api/orders/clear`, {
             method:  'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.success) {
+            // Local counts reset karo
             completedOrdersCount = 0;
             totalOrdersEver      = 0;
             todayRevenue         = 0;
@@ -316,14 +323,14 @@ async function clearOrderHistory() {
 }
 
 // ============================================================
-// SEARCH
+// SEARCH — Type karo toh filter ho
 // ============================================================
 document.getElementById('searchOrder').addEventListener('input', e => {
     renderOrders(e.target.value);
 });
 
 // ============================================================
-// LOGOUT
+// LOGOUT — Auto-refresh band karo, localStorage clear karo
 // ============================================================
 function logoutAdmin() {
     clearInterval(autoRefreshInterval);

@@ -9,152 +9,125 @@
 <body>
 
     <!-- ============================================================
-         NAVBAR — Upar wali strip: Logo + User naam + Logout button
-    ============================================================ -->
+         NAVBAR — Upar wali sticky strip
+         Left: App naam | Right: Student naam + Logout
+         ============================================================ -->
     <nav class="navbar">
-
-        <!-- Left side: App ka naam -->
         <div class="nav-brand">
             <h2>🖨️ QuickPrint Hub</h2>
         </div>
-
-        <!-- Right side: Student ka naam aur logout button -->
         <div class="nav-profile">
-            <span id="userNameDisplay">Welcome, Student</span> <!-- JS se naam yahan aayega -->
+            <!-- JS se yahan student ka naam aayega -->
+            <span id="userNameDisplay">Welcome, Student</span>
             <button class="btn-outline" onclick="logout()">Logout</button>
         </div>
-
     </nav>
-
-
+ 
+ 
     <!-- ============================================================
-         MAIN DASHBOARD — Poora page ka content yahan hai
-         2 sections hain: Left (queue + upload), Right (cart + payment)
-    ============================================================ -->
+         MAIN DASHBOARD — 2 sections side by side
+         Left:  Queue status + File upload
+         Right: Cart settings + Payment
+         ============================================================ -->
     <main class="dashboard-container">
-
-
-        <!-- --------------------------------------------------------
-             LEFT SECTION — Queue status + File upload
-        -------------------------------------------------------- -->
+ 
+ 
+        <!-- LEFT SECTION -->
         <section class="config-section">
-
-            <!-- Live Queue Card: Kitne orders pehle hain aur kitna wait -->
+ 
+            <!-- Live Queue Card — Kitne orders pehle hain, kitna wait -->
             <div class="card queue-status-card">
                 <h3>📊 Live Print Queue</h3>
                 <div class="status-details">
-
                     <div class="status-item">
                         <span class="label">Orders before you:</span>
-                        <span class="value highlight" id="queueCount">0</span> <!-- JS se update hoga -->
+                        <span class="value highlight" id="queueCount">0</span>
                     </div>
-
                     <div class="status-item">
                         <span class="label">Estimated Wait:</span>
-                        <span class="value" id="waitTime">0 Mins</span> <!-- JS se update hoga -->
+                        <span class="value" id="waitTime">0 Mins</span>
                     </div>
-
                 </div>
             </div>
-
-
-            <!-- Upload Card: File drag/drop ya browse karke upload karo -->
+ 
+            <!-- Upload Card — Files select karo -->
             <div class="card upload-card">
                 <h3>📁 Upload Documents</h3>
-
                 <div class="upload-area" id="dropZone">
                     <p>Drag & Drop your files here or</p>
-
-                    <!-- Actual file input hidden rakha hai, button click se khulega -->
+                    <!-- File input hidden hai, neeche wala button click karo toh khulega -->
                     <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
-
-                    <!-- Ye button click hoga toh upar wala hidden file input open hoga -->
                     <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">Browse Files</button>
-
                     <p class="file-limits">PDF pages will be counted automatically.</p>
                 </div>
             </div>
-
+ 
         </section>
-
-
-        <!-- --------------------------------------------------------
-             RIGHT SECTION — Cart settings + Checkout
-        -------------------------------------------------------- -->
+ 
+ 
+        <!-- RIGHT SECTION -->
         <section class="summary-section">
-
+ 
             <div class="card cart-card">
                 <h3>🛒 Config & Checkout</h3>
-
-                <!-- Yahan JS se file cards dynamically add honge -->
-                <!-- Jab tak koi file nahi, default message dikhega -->
+ 
+                <!-- Cart items yahan JS se dynamically add honge -->
                 <div id="cartItemsContainer" class="cart-items">
                     <div class="empty-cart-msg">Upload files to see settings and live price here.</div>
                 </div>
-
-                <!-- Total amount yahan dikhega -->
+ 
+                <!-- Total amount -->
                 <div class="price-summary">
                     <div class="summary-row total-row">
                         <span>Total Amount:</span>
-                        <span id="totalPrice">₹0.00</span> <!-- JS se update hoga -->
+                        <span id="totalPrice">₹0.00</span>
                     </div>
                 </div>
-
+ 
                 <hr class="divider">
-
-                <!-- Payment button aur notes -->
+ 
+                <!-- Payment section -->
                 <div class="checkout-actions">
-
                     <div class="notification-info">
                         <p class="help-text">✅ WhatsApp updates will be sent to your registered number.</p>
                     </div>
-
-                    <!-- Pay button: Jab tak cart khali hai, disabled rahega -->
+                    <!-- Cart khali hone pe disabled rahega (JS se enable hoga) -->
                     <button class="btn-success w-100" id="payNowBtn" onclick="processPayment()" disabled>
                         Pay Securely & Confirm 💳
                     </button>
-
                     <p class="secure-note">⚠️ Note: If not collected within 24 hours, order will be rejected. No refunds.</p>
-
                 </div>
             </div>
-
+ 
         </section>
-
+ 
     </main>
-
-
+ 
+ 
     <!-- ============================================================
-         SUCCESS MODAL — Payment hone ke baad popup dikhega
-         Default me "hidden" class hai, JS se visible hoga
-    ============================================================ -->
+         SUCCESS MODAL — Payment ke baad dikhne wala popup
+         Default mein hidden hai, JS se visible hoga
+         ============================================================ -->
     <div id="successModal" class="modal hidden">
         <div class="modal-content text-center">
-
             <div class="success-icon">✅</div>
             <h2>Payment Successful!</h2>
             <p>Your Order Serial Number is:</p>
-
-            <!-- Order number yahan JS se aayega -->
+            <!-- JS se order number aayega -->
             <h1 class="order-number" id="displayOrderNumber">#0000</h1>
-
-            <!-- Ready time JS se calculate karke yahan aayega -->
+            <!-- JS se ready time calculate hogi -->
             <p class="ready-time">Collect your printout at: <strong id="displayReadyTime">--:--</strong></p>
-
             <p class="warning-text">Show this serial number at the shop counter.</p>
-
-            <!-- Ye button modal band karta hai aur cart reset karta hai -->
             <button class="btn-primary" onclick="closeModal()">Got it!</button>
-
         </div>
     </div>
-
-
+ 
+ 
     <!-- ============================================================
-         SCRIPTS — Sabse neeche load hote hain (HTML ke baad)
-         1. PDF.js: PDF ke pages count karne ke liye
+         SCRIPTS — Sabse neeche load hote hain
+         1. PDF.js: PDF pages count karne ke liye (CDN se)
          2. user.js: Is page ka pura logic
-    ============================================================ -->
+         ============================================================ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="user.js"></script>
 

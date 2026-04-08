@@ -8,26 +8,27 @@
 </head>
 <body>
         
-        <nav class="navbar admin-navbar">
+        <!-- ============================================================
+         ADMIN NAVBAR — Dark top bar
+         Left: Admin title | Right: Logout button
+         ============================================================ -->
+    <nav class="navbar admin-navbar">
         <div class="nav-brand">
             <h2>🛠️ Admin</h2>
         </div>
         <div class="nav-actions">
-            <!-- <span id="liveClock" class="clock">00:00:00</span> -->
             <button class="btn-danger-outline" onclick="logoutAdmin()">Logout</button>
         </div>
     </nav>
-
+ 
+ 
+    <!-- ============================================================
+         ADMIN DASHBOARD — Main content area
+         ============================================================ -->
     <main class="admin-container">
-        
-        <!-- <header class="dashboard-header">
-            <div>
-                <h1>Shopkeeper Control Panel</h1>
-                <p class="subtitle">Manage today's print queue efficiently.</p>
-            </div>
-            
-        </header> -->
-
+ 
+ 
+        <!-- STATS ROW — 3 cards: Total / Pending / Completed -->
         <section class="stats-row">
             <div class="stat-card">
                 <h3>Total Orders</h3>
@@ -42,17 +43,24 @@
                 <h2 id="completedCount">0</h2>
             </div>
         </section>
-
+ 
+ 
+        <!-- LIVE QUEUE SECTION — Active orders ki list -->
         <section class="queue-section">
+ 
+            <!-- Heading + Search box -->
             <div class="section-heading">
                 <h2>📥 Live Print Queue</h2>
                 <div class="queue-filters">
+                    <!-- Order number ya naam se search karo -->
                     <input type="text" id="searchOrder" placeholder="Search Order # or Name..." class="form-control">
                 </div>
             </div>
-
+ 
+            <!-- Order cards yahan JS se dynamically add honge -->
             <div class="orders-grid" id="ordersContainer">
-                <!-- <div class="order-card">
+                <!-- Ek order card ka example (comment mein):
+                <div class="order-card">
                     <div class="order-header">
                         <span class="order-number">#0001</span>
                         <span class="order-time">10:30 AM</span>
@@ -67,21 +75,22 @@
                             <span class="badge badge-bw">B/W</span>
                             <span class="badge badge-single">Single</span>
                         </div>
-                        <div class="file-item">
-                            <span>🖼️ Graph.jpg (1 Page)</span>
-                            <span class="badge badge-color">Color</span>
-                        </div>
                     </div>
                     <div class="order-footer">
                         <span class="total-bill">₹20.00</span>
-                        <button class="btn-success" onclick="markComplete('0001')">Print & Complete ✅</button>
+                        <button class="btn-success" onclick="markComplete('id', '0001')">Print & Complete ✅</button>
                     </div>
-                </div> -->
+                </div>
+                -->
             </div>
         </section>
-
-
-        <button class="btn-danger" id="clearHistoryBtn" onclick="clearOrderHistory()">🗑️ Clear All Order History</button>
+ 
+ 
+        <!-- CLEAR HISTORY BUTTON — Saara data delete karo -->
+        <button class="btn-danger" id="clearHistoryBtn" onclick="clearOrderHistory()">
+            🗑️ Clear All Order History
+        </button>
+ 
     </main>
 
     <script src="admin.js"></script>
