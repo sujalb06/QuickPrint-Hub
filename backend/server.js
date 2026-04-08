@@ -86,7 +86,9 @@ app.post('/api/auth/send-otp', (req, res) => {
 });
 
 app.post('/api/auth/verify-otp', (req, res) => {
-    const { phone, otp, name, role } = req.body;
+    // 1. 'name' ki jagah 'fullName' receive karein
+    const { phone, otp, fullName, role } = req.body; 
+    
     const stored = otpStore[phone];
     if (!stored) return res.status(400).json({ success: false, error: 'OTP expired ya nahi bheja.' });
     if (Date.now() > stored.expiresAt) { delete otpStore[phone]; return res.status(400).json({ success: false, error: 'OTP expire ho gaya.' }); }
@@ -94,8 +96,12 @@ app.post('/api/auth/verify-otp', (req, res) => {
     delete otpStore[phone];
 
     const expiresIn = role === 'admin' ? '30d' : '12h';
-    const token     = jwt.sign({ name, phone, role }, process.env.JWT_SECRET, { expiresIn });
-    res.json({ success: true, token, user: { name, phone, role, fullName: name } });
+    
+    // 2. Token me bhi 'fullName' save karein
+    const token = jwt.sign({ fullName, phone, role }, process.env.JWT_SECRET, { expiresIn });
+    
+    // 3. User object me sirf 'fullName' bhejein
+    res.json({ success: true, token, user: { fullName, phone, role } }); 
 });
 
 // ============================================================
@@ -111,7 +117,7 @@ app.post('/api/orders', authenticateToken, upload.array('actualFiles'), async (r
         const orderSerial = String(count + 1).padStart(4, '0');
 
         const newOrder = new Order({
-            studentName:  req.user.name,
+            studentName:  req.user.fullName,
             studentPhone: req.user.phone,
             orderSerial,
             files: filesConfig.map((f, i) => ({

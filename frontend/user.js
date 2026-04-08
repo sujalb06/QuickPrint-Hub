@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    document.getElementById('userNameDisplay').innerText = `Welcome, ${user.name || user.fullName}`;
+    document.getElementById('userNameDisplay').innerText = `Welcome, ${user.fullName}`;
 
     fetchLiveQueue();
     setInterval(fetchLiveQueue, 10000);

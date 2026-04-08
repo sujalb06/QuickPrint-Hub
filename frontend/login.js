@@ -93,7 +93,7 @@ async function sendOTP() {
 // ============================================================
 async function verifyOTP() {
     const phone = document.getElementById('phone').value.trim();
-    const name  = document.getElementById('fullName').value.trim();
+    const fullnamevalue  = document.getElementById('fullName').value.trim();
     const otp   = document.getElementById('otpInput').value.trim();
 
     if (!otp) {
@@ -105,7 +105,7 @@ async function verifyOTP() {
         const res  = await fetch('https://quickprint-hub.onrender.com/api/auth/verify-otp', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ phone, otp, name, role: currentRole })
+            body:    JSON.stringify({ phone, otp, fullnamevalue, role: currentRole })
         });
         const data = await res.json();
 
