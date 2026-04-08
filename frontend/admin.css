@@ -560,6 +560,8 @@ button {
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
     transition: all 0.2s ease;
+
+    border: none;
 }
 
 /* Hover pe thoda dark aur upar uthta hai */
