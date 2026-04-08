@@ -1,51 +1,98 @@
 // ============================================================
 // QUICKPRINT - ADMIN DASHBOARD SCRIPT
-// Change: studentName/studentPhone ab order mein directly hai
-// (pehle userId.fullName tha — ab nahi)
+// Fixes:
+// 1. Bina login ke access ho raha tha — backend verify lagaya
+// 2. File download — fetch + Blob se khulegi (token ke saath)
+// 3. Auto-refresh — setInterval se har 8 second mein silently
 // ============================================================
 
-let activeOrders       = [];
+let activeOrders         = [];
 let completedOrdersCount = 0;
-let totalOrdersEver    = 0;
-let todayRevenue       = 0;
+let totalOrdersEver      = 0;
+let todayRevenue         = 0;
+let autoRefreshInterval  = null;
 
+const BASE_URL = 'https://quickprint-hub.onrender.com';
 
 // ============================================================
-// PAGE LOAD
+// PAGE LOAD — Strict login check
 // ============================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const savedUser = localStorage.getItem('quickprint_user');
     const token     = localStorage.getItem('quickprint_token');
 
+    // LocalStorage mein nahi — seedha login pe
     if (!savedUser || !token) {
         window.location.href = 'index.html';
         return;
     }
 
     const user = JSON.parse(savedUser);
+
+    // LocalStorage role check (fast check)
     if (user.role !== 'admin') {
-        alert('Access Denied!');
+        alert('Access Denied! Sirf shopkeeper yeh page dekh sakta hai.');
         window.location.href = 'index.html';
         return;
     }
 
-    fetchLiveQueue();
+    // Backend se bhi verify karo — token sahi hai ya nahi
+    // Ye FIX hai: pehle sirf localStorage check tha jo hack ho sakta tha
+    const valid = await verifyTokenWithBackend(token);
+    if (!valid) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Sab theek — queue load karo aur auto-refresh shuru karo
+    await fetchLiveQueue();
+    startAutoRefresh();
 });
 
+// ============================================================
+// BACKEND TOKEN VERIFY — Ek simple API call se check
+// ============================================================
+async function verifyTokenWithBackend(token) {
+    try {
+        const res = await fetch(`${BASE_URL}/api/orders/queue`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        // 401/403 = token invalid ya admin nahi
+        return res.status !== 401 && res.status !== 403;
+    } catch (e) {
+        // Server down hai — allow karo (offline case)
+        return true;
+    }
+}
 
 // ============================================================
-// QUEUE FETCH — Token ke saath
+// AUTO-REFRESH — Har 8 second mein silently queue update
+// Bina page refresh ke — sirf naye orders aane pe UI update hoga
 // ============================================================
-async function fetchLiveQueue() {
+function startAutoRefresh() {
+    // Pehle clear karo agar pehle se chal raha tha
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+
+    autoRefreshInterval = setInterval(async () => {
+        await fetchLiveQueue(true); // true = silent (no alert on error)
+    }, 8000); // 8 second
+}
+
+// ============================================================
+// QUEUE FETCH
+// silent = true hoga toh error pe alert nahi aayega
+// ============================================================
+async function fetchLiveQueue(silent = false) {
     const token = localStorage.getItem('quickprint_token');
 
     try {
-        const response = await fetch('https://quickprint-hub.onrender.com/api/orders/queue', {
+        const response = await fetch(`${BASE_URL}/api/orders/queue`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        // Token expire — login pe bhejo
         if (response.status === 401 || response.status === 403) {
+            clearInterval(autoRefreshInterval);
             localStorage.clear();
             window.location.href = 'index.html';
             return;
@@ -58,38 +105,35 @@ async function fetchLiveQueue() {
                 _id:         dbOrder._id,
                 id:          dbOrder.orderSerial,
                 time:        new Date(dbOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                studentName: dbOrder.studentName,   // Direct field — no populate
-                phone:       dbOrder.studentPhone,  // Direct field
+                studentName: dbOrder.studentName,
+                phone:       dbOrder.studentPhone,
                 files:       dbOrder.files.map(f => ({
-                    name:    f.fileName,
-                    pages:   f.totalPages,
-                    color:   f.colorType,
-                    side:    f.printSide,
-                    copies:  f.copies,
-                    fileUrl: `https://quickprint-hub.onrender.com/api/files/${f.fileUrl}`
-                    // Protected URL — token ke bina open nahi hogi
+                    name:     f.fileName,
+                    pages:    f.totalPages,
+                    color:    f.colorType,
+                    side:     f.printSide,
+                    copies:   f.copies,
+                    filename: f.fileUrl  // Sirf filename — URL fetch() se banega
                 })),
                 total: dbOrder.totalAmount
             }));
 
             totalOrdersEver = activeOrders.length + completedOrdersCount;
-            renderOrders();
+            renderOrders(document.getElementById('searchOrder').value); // Search filter maintain karo
             updateStats();
         }
 
     } catch (error) {
+        if (!silent) alert('Server se orders load nahi ho paye!');
         console.error('Queue fetch error:', error);
-        alert('Server se orders load nahi ho paye!');
     }
 }
-
 
 // ============================================================
 // ORDERS RENDER
 // ============================================================
 function renderOrders(filterText = '') {
     const container = document.getElementById('ordersContainer');
-    container.innerHTML = '';
 
     const filtered = activeOrders.filter(order =>
         order.id.includes(filterText) ||
@@ -101,8 +145,24 @@ function renderOrders(filterText = '') {
         return;
     }
 
+    // Sirf naye/changed cards update karo — poora innerHTML replace nahi
+    // Ye flickering rokta hai auto-refresh pe
+    const existingIds = new Set([...container.querySelectorAll('.order-card')].map(c => c.id));
+    const newIds      = new Set(filtered.map(o => `order-${o.id}`));
+
+    // Hata diye gaye orders remove karo
+    existingIds.forEach(id => {
+        if (!newIds.has(id)) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+    });
+
+    // Naye orders add karo
     filtered.forEach(order => {
-        let filesHtml = order.files.map(file => `
+        if (existingIds.has(`order-${order.id}`)) return; // Pehle se hai — skip
+
+        const filesHtml = order.files.map(file => `
             <div class="file-item-stacked">
                 <div class="file-line-1">
                     📄 <strong>${file.name}</strong>
@@ -114,7 +174,14 @@ function renderOrders(filterText = '') {
                     <span class="badge-qty">Qty: ${file.copies || 1}</span>
                 </div>
                 <div class="file-line-3">
-                    <a href="${file.fileUrl}" target="_blank" class="btn-download-small">⬇️ Download</a>
+                    <!-- 
+                        FIX: <a href="..."> ki jagah button use kiya
+                        Kyunki browser Authorization header nahi bhej sakta <a> tag se
+                        openFile() function fetch() se Blob banata hai aur new tab mein kholta hai
+                    -->
+                    <button class="btn-download-small" onclick="openFile('${file.filename}')">
+                        ⬇️ Download / View
+                    </button>
                 </div>
             </div>
         `).join('');
@@ -132,13 +199,58 @@ function renderOrders(filterText = '') {
                 <div class="file-details">${filesHtml}</div>
                 <div class="order-footer">
                     <span class="total-bill">₹${order.total.toFixed(2)}</span>
-                    <button class="btn-success" onclick="markComplete('${order._id}', '${order.id}')">Print & Complete ✅</button>
+                    <button class="btn-success" onclick="markComplete('${order._id}', '${order.id}')">
+                        Print & Complete ✅
+                    </button>
                 </div>
             </div>
         `);
     });
 }
 
+// ============================================================
+// FILE OPEN — fetch() + Blob = new tab mein khulegi
+// Ye FIX hai: <a href="url"> se token nahi jaata
+// Yahan hum fetch() se token bhejte hain, response ko Blob banate hain
+// Blob ka Object URL new tab mein khol dete hain
+// ============================================================
+async function openFile(filename) {
+    const token = localStorage.getItem('quickprint_token');
+    const btn   = event.target; // Kaunsa button click hua
+
+    btn.innerHTML = '⏳ Loading...';
+    btn.disabled  = true;
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/files/${filename}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            alert(err.error || 'File open nahi ho payi.');
+            return;
+        }
+
+        // Response ko Blob (binary data) mein convert karo
+        const blob      = await response.blob();
+        // Blob ka temporary URL banao
+        const objectUrl = URL.createObjectURL(blob);
+
+        // New tab mein kholo
+        window.open(objectUrl, '_blank');
+
+        // 1 minute baad temporary URL free karo
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+
+    } catch (error) {
+        alert('File open karne mein error aaya.');
+        console.error('File open error:', error);
+    } finally {
+        btn.innerHTML = '⬇️ Download / View';
+        btn.disabled  = false;
+    }
+}
 
 // ============================================================
 // STATS UPDATE
@@ -151,7 +263,6 @@ function updateStats() {
     if (rev) rev.innerText = `₹${todayRevenue.toFixed(2)}`;
 }
 
-
 // ============================================================
 // ORDER COMPLETE
 // ============================================================
@@ -159,7 +270,7 @@ async function markComplete(dbId, serialNum) {
     const token = localStorage.getItem('quickprint_token');
 
     try {
-        const response = await fetch(`https://quickprint-hub.onrender.com/api/orders/${dbId}/complete`, {
+        const response = await fetch(`${BASE_URL}/api/orders/${dbId}/complete`, {
             method:  'PUT',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -170,13 +281,12 @@ async function markComplete(dbId, serialNum) {
             if (done) todayRevenue += done.total;
             completedOrdersCount++;
             alert(`Order #${serialNum} Completed! ✅`);
-            fetchLiveQueue();
+            await fetchLiveQueue();
         }
     } catch (error) {
         console.error('Complete error:', error);
     }
 }
-
 
 // ============================================================
 // CLEAR HISTORY
@@ -186,7 +296,7 @@ async function clearOrderHistory() {
     if (!confirm('⚠️ Saare orders clear ho jaayenge. Sure ho?')) return;
 
     try {
-        const response = await fetch('https://quickprint-hub.onrender.com/api/orders/clear', {
+        const response = await fetch(`${BASE_URL}/api/orders/clear`, {
             method:  'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -197,7 +307,7 @@ async function clearOrderHistory() {
             totalOrdersEver      = 0;
             todayRevenue         = 0;
             document.getElementById('searchOrder').value = '';
-            fetchLiveQueue();
+            await fetchLiveQueue();
             alert('System reset! Ready for new day 🌅');
         }
     } catch (error) {
@@ -205,70 +315,18 @@ async function clearOrderHistory() {
     }
 }
 
-
 // ============================================================
 // SEARCH
 // ============================================================
-document.getElementById('searchOrder').addEventListener('input', e => renderOrders(e.target.value));
-
+document.getElementById('searchOrder').addEventListener('input', e => {
+    renderOrders(e.target.value);
+});
 
 // ============================================================
 // LOGOUT
 // ============================================================
 function logoutAdmin() {
+    clearInterval(autoRefreshInterval);
     localStorage.clear();
     window.location.href = 'index.html';
-}
-
-
-
-
-
-
-
-
-
-// ============================================================
-// FILE DOWNLOAD FUNCTION (Secure, with Token)
-// ============================================================
-async function downloadFile(filename) {
-    const token = localStorage.getItem('quickprint_token');
-
-    try {
-        // Fetch ke through request bhejenge taaki token add kar sakein
-        const response = await fetch(`https://quickprint-hub.onrender.com/api/files/${filename}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        // Agar token expire ho gaya ya galat hai
-        if (!response.ok) {
-            alert("File download nahi ho payi. Pata nahi kya error hai!");
-            return;
-        }
-
-        // File ke data ko 'Blob' (Binary Large Object) format me read karo
-        const blob = await response.blob();
-        
-        // Ek temporary URL banao is blob data ka
-        const downloadUrl = window.URL.createObjectURL(blob);
-        
-        // Ek invisible <a> tag bana kar auto-click karwao (download trigger karne ke liye)
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = downloadUrl;
-        a.download = filename; // File kis naam se save hogi
-        document.body.appendChild(a);
-        a.click();
-        
-        // Download start hone ke baad URL aur tag delete kar do (memory bachane ke liye)
-        window.URL.revokeObjectURL(downloadUrl);
-        a.remove();
-
-    } catch (error) {
-        console.error("Download Error:", error);
-        alert("Server se file fetch karne me problem aayi.");
-    }
 }

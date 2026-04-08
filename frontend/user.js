@@ -1,34 +1,38 @@
 // ============================================================
 // QUICKPRINT - STUDENT CART & ORDER SCRIPT
-// Changes:
-// - naam localStorage se aata hai (user.name)
-// - queue fetch: /api/orders/queue-count use karta hai
-// - order mein userId nahi — naam/phone JWT se aata hai
+// Fix: Login check strict kiya — bina token redirect hoga
 // ============================================================
 
 let cartItems = [];
 const PRICES  = { bw: 2, color: 10 };
-
+const BASE_URL = 'https://quickprint-hub.onrender.com';
 
 // ============================================================
-// PAGE LOAD
+// PAGE LOAD — Strict login check
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('quickprint_user');
-    if (!savedUser) {
-        alert('Please login first!');
+    const token     = localStorage.getItem('quickprint_token');
+
+    // Token ya user nahi — login pe bhejo
+    if (!savedUser || !token) {
         window.location.href = 'index.html';
         return;
     }
 
     const user = JSON.parse(savedUser);
-    // naam localStorage se — Jo login ke waqt save hua tha
+
+    // Admin galti se user.html pe aa gaya toh wapas bhejo
+    if (user.role === 'admin') {
+        window.location.href = 'admin.html';
+        return;
+    }
+
     document.getElementById('userNameDisplay').innerText = `Welcome, ${user.name || user.fullName}`;
 
     fetchLiveQueue();
     setInterval(fetchLiveQueue, 10000);
 });
-
 
 // ============================================================
 // FILE UPLOAD
@@ -50,7 +54,7 @@ document.getElementById('fileInput').addEventListener('change', async function (
                 const pdf         = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
                 pages = pdf.numPages;
             } catch (error) {
-                const manual = prompt(`${file.name} ka pages count nahi ho paya.\nManually pages count daalo:`, '1');
+                const manual = prompt(`${file.name} ka pages count nahi ho paya.\nManually pages daalo:`, '1');
                 pages = parseInt(manual) || 1;
             }
         }
@@ -72,7 +76,6 @@ document.getElementById('fileInput').addEventListener('change', async function (
     e.target.value = '';
 });
 
-
 // ============================================================
 // CART UI
 // ============================================================
@@ -83,17 +86,17 @@ function renderCartUI() {
 
     if (cartItems.length === 0) {
         container.innerHTML = '<div class="empty-cart-msg">Upload files to see settings and live price here.</div>';
-        document.getElementById('totalPrice').innerText   = '₹0.00';
-        document.getElementById('payNowBtn').disabled = true;
+        document.getElementById('totalPrice').innerText = '₹0.00';
+        document.getElementById('payNowBtn').disabled   = true;
         return;
     }
 
     document.getElementById('payNowBtn').disabled = false;
 
     cartItems.forEach(item => {
-        const sheets  = item.printSide === 'double' ? Math.ceil(item.pages / 2) : item.pages;
-        item.price    = sheets * PRICES[item.colorType] * item.copies;
-        totalAmount  += item.price;
+        const sheets = item.printSide === 'double' ? Math.ceil(item.pages / 2) : item.pages;
+        item.price   = sheets * PRICES[item.colorType] * item.copies;
+        totalAmount += item.price;
 
         container.insertAdjacentHTML('beforeend', `
             <div class="file-settings-card" id="${item.id}">
@@ -130,10 +133,6 @@ function renderCartUI() {
     document.getElementById('totalPrice').innerText = `₹${totalAmount.toFixed(2)}`;
 }
 
-
-// ============================================================
-// SETTINGS
-// ============================================================
 function updateSetting(id, type, value) {
     const i = cartItems.findIndex(x => x.id === id);
     if (i > -1) { cartItems[i][type] = value; renderCartUI(); }
@@ -151,14 +150,13 @@ function removeItem(id) {
     renderCartUI();
 }
 
-
 // ============================================================
 // PAYMENT
 // ============================================================
 async function processPayment() {
-    const token   = localStorage.getItem('quickprint_token');
-    const payBtn  = document.getElementById('payNowBtn');
-    const total   = cartItems.reduce((s, i) => s + i.price, 0);
+    const token  = localStorage.getItem('quickprint_token');
+    const payBtn = document.getElementById('payNowBtn');
+    const total  = cartItems.reduce((s, i) => s + i.price, 0);
 
     const formData = new FormData();
     formData.append('orderData', JSON.stringify({
@@ -178,7 +176,7 @@ async function processPayment() {
     payBtn.disabled  = true;
 
     try {
-        const res  = await fetch('https://quickprint-hub.onrender.com/api/orders', {
+        const res  = await fetch(`${BASE_URL}/api/orders`, {
             method:  'POST',
             headers: { 'Authorization': `Bearer ${token}` },
             body:    formData
@@ -188,7 +186,6 @@ async function processPayment() {
         if (data.success) {
             document.getElementById('displayOrderNumber').innerText = `#${data.orderSerial}`;
 
-            // Ready time calculate
             let secs = 60;
             cartItems.forEach(i => { secs += 30 + (i.pages * i.copies * 2); });
             const queueMins = parseInt(document.getElementById('waitTime').innerText) || 0;
@@ -201,7 +198,6 @@ async function processPayment() {
         } else {
             alert('Order error: ' + data.error);
         }
-
     } catch (err) {
         alert('Server connection failed.');
     } finally {
@@ -210,36 +206,35 @@ async function processPayment() {
     }
 }
 
-
-// ============================================================
-// MODAL CLOSE
-// ============================================================
 function closeModal() {
     document.getElementById('successModal').classList.add('hidden');
     cartItems = [];
     renderCartUI();
 }
 
-
-// ============================================================
-// LOGOUT
-// ============================================================
 function logout() {
     localStorage.clear();
     window.location.href = 'index.html';
 }
 
-
 // ============================================================
-// LIVE QUEUE — Sirf count + wait time (naam/files nahi)
+// LIVE QUEUE
 // ============================================================
 async function fetchLiveQueue() {
     const token = localStorage.getItem('quickprint_token');
 
     try {
-        const res  = await fetch('https://quickprint-hub.onrender.com/api/orders/queue-count', {
+        const res  = await fetch(`${BASE_URL}/api/orders/queue-count`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+
+        // Token expire — login pe bhejo
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
+        }
+
         const data = await res.json();
 
         if (data.success) {
@@ -248,11 +243,8 @@ async function fetchLiveQueue() {
                 secs += 60;
                 o.files.forEach(f => { secs += 30 + (f.totalPages * f.copies * 2); });
             });
-
-            document.getElementById('queueCount').innerText =
-                data.count;
-            document.getElementById('waitTime').innerText   =
-                data.count === 0 ? '0 Mins' : `${Math.ceil(secs / 60)} Mins`;
+            document.getElementById('queueCount').innerText = data.count;
+            document.getElementById('waitTime').innerText   = data.count === 0 ? '0 Mins' : `${Math.ceil(secs / 60)} Mins`;
         }
     } catch (err) {
         console.error('Queue error:', err);
