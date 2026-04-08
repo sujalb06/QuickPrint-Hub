@@ -219,3 +219,56 @@ function logoutAdmin() {
     localStorage.clear();
     window.location.href = 'index.html';
 }
+
+
+
+
+
+
+
+
+
+// ============================================================
+// FILE DOWNLOAD FUNCTION (Secure, with Token)
+// ============================================================
+async function downloadFile(filename) {
+    const token = localStorage.getItem('quickprint_token');
+
+    try {
+        // Fetch ke through request bhejenge taaki token add kar sakein
+        const response = await fetch(`https://quickprint-hub.onrender.com/api/files/${filename}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        // Agar token expire ho gaya ya galat hai
+        if (!response.ok) {
+            alert("File download nahi ho payi. Pata nahi kya error hai!");
+            return;
+        }
+
+        // File ke data ko 'Blob' (Binary Large Object) format me read karo
+        const blob = await response.blob();
+        
+        // Ek temporary URL banao is blob data ka
+        const downloadUrl = window.URL.createObjectURL(blob);
+        
+        // Ek invisible <a> tag bana kar auto-click karwao (download trigger karne ke liye)
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = downloadUrl;
+        a.download = filename; // File kis naam se save hogi
+        document.body.appendChild(a);
+        a.click();
+        
+        // Download start hone ke baad URL aur tag delete kar do (memory bachane ke liye)
+        window.URL.revokeObjectURL(downloadUrl);
+        a.remove();
+
+    } catch (error) {
+        console.error("Download Error:", error);
+        alert("Server se file fetch karne me problem aayi.");
+    }
+}
