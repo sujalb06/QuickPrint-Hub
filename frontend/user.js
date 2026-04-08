@@ -54,7 +54,7 @@ document.getElementById('fileInput').addEventListener('change', async function (
                 const pdf         = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
                 pages = pdf.numPages;
             } catch (error) {
-                const manual = prompt(`${file.name} ka pages count nahi ho paya.\nManually pages daalo:`, '1');
+                const manual = prompt(`Unable to count pages in ${file.name}.\nAdd pages manually:`, '1');
                 pages = parseInt(manual) || 1;
             }
         }

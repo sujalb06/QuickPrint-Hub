@@ -20,14 +20,14 @@
             <!-- Role Tabs -->
             <div class="role-tabs">
                 <button type="button" class="tab-btn active" id="userTab"  onclick="switchRole('user')">Student</button>
-                <button type="button" class="tab-btn"        id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
+                <button type="button" class="tab-btn" id="adminTab" onclick="switchRole('admin')">Shopkeeper</button>
             </div>
  
             <!-- STEP 1: Naam + Number -->
             <div id="step1">
                 <div class="input-group">
                     <label>Full Name</label>
-                    <input type="text" id="fullName" placeholder="Apna poora naam daalo">
+                    <input type="text" id="fullName" placeholder="Enter name here">
                 </div>
                 <div class="input-group">
                     <label>Phone Number</label>
@@ -48,14 +48,14 @@
                     <label>Enter OTP</label>
                     <div class="otp-input-wrapper">
                         <span class="code-icon">🔑</span>
-                        <input type="text" id="otpInput" placeholder="OTP daalo" maxlength="6" autocomplete="one-time-code">
+                        <input type="text" id="otpInput" placeholder="ENTER OTP" maxlength="6" autocomplete="one-time-code">
                     </div>
                     <p class="help-text" id="resendTimer"></p>
                 </div>
                 <button type="button" class="btn success-btn w-100" onclick="verifyOTP()">
                     Verify & Login 🔒
                 </button>
-                <button type="button" class="btn-back" onclick="goBack()">← Number change karo</button>
+                <!-- <button type="button" class="btn-back" onclick="goBack()">← Change Number</button> -->
             </div>
  
         </div>

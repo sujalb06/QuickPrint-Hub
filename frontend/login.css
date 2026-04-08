@@ -81,6 +81,15 @@ body {
     display: flex; border: 1.5px solid var(--border-color);
     border-radius: 8px; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s;
 }
+
+/* OTP input ke placeholder text ko normal karne ke liye */
+.otp-input-wrapper input::placeholder {
+    letter-spacing: normal;   /* Gap hata dega */
+    font-weight: 400;         /* Text ko normal patla kar dega */
+    font-size: 0.95rem;       /* Baaki inputs jaisa size kar dega */
+}
+
+
 .otp-input-wrapper:focus-within { border-color: var(--success); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
 .code-icon {
     background: #f0fdf4; padding: 12px 14px; font-size: 1rem;

@@ -121,7 +121,7 @@ async function verifyOTP() {
             window.location.href = currentRole === 'admin' ? 'admin.html' : 'user.html';
 
         } else {
-            alert(data.error || 'OTP galat hai');
+            alert(data.error || 'Incorrect OTP');
         }
 
     } catch (e) {

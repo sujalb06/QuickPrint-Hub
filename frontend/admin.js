@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // LocalStorage role check (fast check)
     if (user.role !== 'admin') {
-        alert('Access Denied! Sirf shopkeeper yeh page dekh sakta hai.');
+        alert('Access Denied! Only Admins have access to view the page.');
         window.location.href = 'index.html';
         return;
     }
@@ -228,7 +228,7 @@ async function openFile(filename) {
 
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            alert(err.error || 'File open nahi ho payi.');
+            alert(err.error || 'Unable to open the file.');
             return;
         }
 
@@ -244,7 +244,7 @@ async function openFile(filename) {
         setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
 
     } catch (error) {
-        alert('File open karne mein error aaya.');
+        alert('Error occured in opening the file.');
         console.error('File open error:', error);
     } finally {
         btn.innerHTML = '⬇️ Download / View';
@@ -293,7 +293,7 @@ async function markComplete(dbId, serialNum) {
 // ============================================================
 async function clearOrderHistory() {
     const token = localStorage.getItem('quickprint_token');
-    if (!confirm('⚠️ Saare orders clear ho jaayenge. Sure ho?')) return;
+    if (!confirm('⚠️ All orders will be clear. Are you sure ?')) return;
 
     try {
         const response = await fetch(`${BASE_URL}/api/orders/clear`, {
@@ -308,7 +308,7 @@ async function clearOrderHistory() {
             todayRevenue         = 0;
             document.getElementById('searchOrder').value = '';
             await fetchLiveQueue();
-            alert('System reset! Ready for new day 🌅');
+            alert('System reset! Ready for new day');
         }
     } catch (error) {
         console.error('Clear error:', error);
