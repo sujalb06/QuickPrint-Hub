@@ -229,6 +229,10 @@ body {
     border-radius: 8px;
     padding: 20px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    /* 👇 Ye 2 nayi lines add karein */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Hover pe card thoda upar uthta hai */
@@ -329,7 +333,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 15px;
+
+
+
+    /* margin-top: 15px; */
+    /* 👇 Is purane margin-top: 15px; ko badal kar auto kar dein */
+    margin-top: auto;
+
+
 }
 
 /* Total amount — bada bold */
@@ -442,9 +453,9 @@ button {
    ============================================================ */
 
 /* !important isliye ki grid ki default "stretch" behavior override ho */
-#ordersContainer {
-    align-items: flex-start !important;
-}
+/* #ordersContainer { */
+    /* align-items: flex-start !important; */
+/* } */
 
 
 /* ============================================================
