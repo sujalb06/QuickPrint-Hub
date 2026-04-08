@@ -105,7 +105,7 @@ async function verifyOTP() {
         const res  = await fetch('https://quickprint-hub.onrender.com/api/auth/verify-otp', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ phone, otp, fullnamevalue, role: currentRole })
+            body:    JSON.stringify({ phone, otp, fullName: fullnamevalue, role: currentRole })
         });
         const data = await res.json();
 
