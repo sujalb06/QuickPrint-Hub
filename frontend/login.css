@@ -49,9 +49,10 @@ body {
     /* Login card ko screen ke beech mein rakhna */
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
     color: var(--text-main);
+    padding: 20px 0;
 }
 
 /* ============================================================
