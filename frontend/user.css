@@ -47,6 +47,10 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.5;
+
+    /* 👇 Nayi lines jo screen stretch hone se rokengi 👇 */
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* ============================================================
@@ -533,7 +537,10 @@ button {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 70%;
+    max-width: 60%;
+
+    /* 👇 Bas yeh ek line add karni hai 👇 */
+    display: block;
 }
 
 /* Pages count ka grey badge */
@@ -675,4 +682,15 @@ button {
     .nav-brand h2  { font-size: 1rem; }
     .status-details { flex-direction: column; gap: 15px; }
     .btn-success   { font-size: 1rem; padding: 12px; }
+    .file-name     { max-width: 50%; }
+}
+
+
+
+
+/* ============================================================
+   ANTI-ZOOM FIX FOR MOBILE
+   ============================================================ */
+button, input, select, textarea, .option-block, .btn-download-small {
+    touch-action: manipulation;
 }
