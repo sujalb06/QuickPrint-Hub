@@ -124,6 +124,9 @@ body {
 .queue-status-card {
     background: linear-gradient(to right, #ffffff, #f0f9ff); /* White → Light blue */
     border-left: 4px solid var(--primary);
+
+    box-sizing: border-box; /* border width ke andar count ho */
+    width: 100%;            /* poori width lo */
 }
 
 /* 2 items side by side (orders count + wait time) */
@@ -651,10 +654,10 @@ button {
     }
 
     /* Queue items: ek ke neeche ek */
-    .status-details {
+    /* .status-details {
         flex-direction: column;
         gap: 15px;
-    }
+    } */
 
     /* Options: thoda chhota */
     .options-row { gap: 8px; }
@@ -680,7 +683,7 @@ button {
 @media (max-width: 480px) {
     .navbar        { flex-direction: column; gap: 10px; }
     .nav-brand h2  { font-size: 1rem; }
-    .status-details { flex-direction: column; gap: 15px; }
+    /* .status-details { flex-direction: column; gap: 15px; } */
     .btn-success   { font-size: 1rem; padding: 12px; }
     .file-name     { max-width: 50%; }
 }
