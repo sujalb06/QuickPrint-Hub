@@ -34,7 +34,7 @@ const APPROVED_ADMINS = [
 const otpStore = {};
 
 // Basic middlewares
-app.use(cors());          // Kisi bhi domain se request allow karo
+app.use(cors({ origin: 'https://quick-print-hub.vercel.app' }));          // Kisi bhi domain se request allow karo
 app.use(express.json());  // JSON body parse karo
 
 // Uploads folder nahi hai toh banao
@@ -125,7 +125,7 @@ app.post('/api/auth/send-otp', (req, res) => {
     };
 
     console.log(`📱 OTP for ${phone}: ${otp}`);
-    res.json({ success: true, otp }); // Production mein 'otp' response se hata dena!
+    res.json({ success: true}); // Production mein 'otp' response se hata dena!
 });
 
 // Route 2: OTP verify karo aur token do
@@ -157,7 +157,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
     // JWT token banao
     // Admin ka token 30 din, student ka 12 ghante
-    const expiresIn = role === 'admin' ? '30d' : '12h';
+    const expiresIn = role === 'admin' ? '30d' : '30d';
     const token = jwt.sign({ fullName, phone, role }, process.env.JWT_SECRET, { expiresIn });
 
     res.json({
