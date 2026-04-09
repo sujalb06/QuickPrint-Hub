@@ -49,10 +49,6 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.5;
-
-    /* 👇 Nayi lines jo screen stretch hone se rokengi 👇 */
-    width: 100%;
-    overflow-x: hidden;
 }
 
 /* ============================================================
@@ -414,13 +410,7 @@ button {
     font-size: 0.95rem;
     color: #1e293b;
     font-weight: 500;
-    max-width: 100%;
-
-    /* 👇 Ye 4 lines add karein taaki admin side lamba naam cut ho jaye 👇 */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
+    width: 100%;
 }
 
 /* Line 2 — badges side by side */
@@ -532,12 +522,4 @@ button {
 
     /* Clear history button — center aur full width */
     #clearHistoryBtn { width: 90% !important; min-width: unset; margin: 20px auto 0 !important; }
-}
-
-
-/* ============================================================
-   ANTI-ZOOM FIX FOR MOBILE
-   ============================================================ */
-button, input, select, textarea, .option-block, .btn-download-small {
-    touch-action: manipulation;
 }
