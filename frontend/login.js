@@ -44,7 +44,7 @@ async function sendOTP() {
 
     // Validation
     if (!name || name.length < 2) {
-        alert('Apna naam daalo');
+        alert('Enter your name');
         return;
     }
     if (phone.length !== 10 || isNaN(phone)) {
@@ -71,10 +71,10 @@ async function sendOTP() {
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
             document.getElementById('otpSentMsg').innerText =
-                `OTP bheja +91 ${phone} pe. (Testing OTP: ${data.otp})`;
+                `OTP sent on +91 ${phone}. (Testing OTP: ${data.otp})`;
             startResendTimer(); // 30 second countdown shuru karo
         } else {
-            alert(data.error || 'OTP nahi bheja ja saka');
+            alert(data.error || 'Cant send OTP');
             btn.innerHTML = 'Send OTP';
             btn.disabled  = false;
         }
@@ -96,7 +96,7 @@ async function verifyOTP() {
     const otp      = document.getElementById('otpInput').value.trim();
 
     if (!otp) {
-        alert('OTP daalo');
+        alert('Enter OTP');
         return;
     }
 
