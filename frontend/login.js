@@ -71,8 +71,8 @@ async function sendOTP() {
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
             document.getElementById('otpSentMsg').innerText =
-                `OTP sent on +91 ${phone}
-                // (Testing OTP: ${data.otp})`;
+                `OTP sent on +91 ${phone}`;
+                // (Testing OTP: ${data.otp});
             startResendTimer(); // 30 second countdown shuru karo
         } else {
             alert(data.error || 'Cant send OTP');
