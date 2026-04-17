@@ -411,9 +411,11 @@ button {
 .file-line-1 {
     display: flex;
     align-items: center;
-    justify-content: center; /* 👈 Sab kuch ekdum center me lane ke liye */
-    gap: 6px;                /* 👈 Emoji, naam, aur pages ke beech ek barabar gap */
+    justify-content: center; 
+    gap: 6px;
     width: 100%;
+    max-width: 290px; /* 👈 NAYA FIX: Button aur Badges ke barabar lock kiya */
+    margin: 0 auto;   /* 👈 NAYA FIX: Is poore text box ko perfectly center karega */
     font-size: 0.95rem;
     color: #1e293b;
     font-weight: 500;
