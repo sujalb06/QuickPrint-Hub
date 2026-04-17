@@ -28,8 +28,7 @@ const PORT = process.env.PORT || 5000;
 // ============================================================
 
 const APPROVED_ADMINS = process.env.ADMIN_PHONES 
-    ? process.env.ADMIN_PHONES.split(',').map(n => n.trim())
-    : ['9399578516'];  // Fallback if .env not set
+? process.env.ADMIN_PHONES.split(',').map(n => n.trim()) : [];
 
 console.log('✅ Approved admins:', APPROVED_ADMINS);
 
