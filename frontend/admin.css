@@ -406,11 +406,29 @@ button {
 }
 
 /* Line 1 — naam aur pages */
+/* Line 1 — naam aur pages (Updated for Truncation) */
 .file-line-1 {
+    display: flex;
+    align-items: center;
+    width: 100%;
     font-size: 0.95rem;
     color: #1e293b;
     font-weight: 500;
-    width: 100%;
+}
+
+/* File ka naam (strong tag) cut karke "..." lagane ke liye */
+.file-line-1 strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1; /* Bachi hui saari jagah le lega par limit se bahar nahi jayega */
+    margin: 0 5px;
+}
+
+/* Pages count wale text ko dabne (shrink hone) se rokne ke liye */
+.file-line-1 span {
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Line 2 — badges side by side */
