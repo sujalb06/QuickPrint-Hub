@@ -17,6 +17,7 @@ const multer   = require('multer');
 const path     = require('path');
 const fs       = require('fs');
 const cron     = require('node-cron');
+const rateLimit = require('express-rate-limit');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -25,9 +26,12 @@ const PORT = process.env.PORT || 5000;
 // ADMIN KE APPROVED NUMBERS — Sirf ye log admin login kar sakte hain
 // Apna number yahan daalo
 // ============================================================
-const APPROVED_ADMINS = [
-    '9876543210',
-];
+
+const APPROVED_ADMINS = process.env.ADMIN_PHONES 
+    ? process.env.ADMIN_PHONES.split(',').map(n => n.trim())
+    : ['9876543210'];  // Fallback if .env not set
+
+console.log('✅ Approved admins:', APPROVED_ADMINS);
 
 // OTP temporary yahan store hoga (memory mein, database mein nahi)
 // Server restart = sab OTPs delete
@@ -83,15 +87,38 @@ function authenticateToken(req, res, next) {
     });
 }
 
+
+// Rate limiter - ek IP se 5 OTP requests per 15 min
+const otpLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    max: 5,  // Max 5 requests
+    message: { 
+        success: false, 
+        error: 'Too many attempts. Try after 15 minutes.' 
+    }
+});
+
+
 // ============================================================
 // MIDDLEWARE: ADMIN CHECK
 // authenticateToken ke baad ye chalega
 // Sirf admin role wale aage ja sakte hain
 // ============================================================
 function isAdmin(req, res, next) {
+    // Check 1: JWT mein role check
     if (req.user.role !== 'admin') {
         return res.status(403).json({ success: false, error: 'Admin access only.' });
     }
+    
+    // ✅ Check 2: Phone number whitelist mein hai?
+    if (!APPROVED_ADMINS.includes(req.user.phone)) {
+        console.warn(`⚠️ Blocked unauthorized admin: ${req.user.phone}`);
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Phone number not authorized.' 
+        });
+    }
+    
     next();
 }
 
@@ -102,7 +129,7 @@ function isAdmin(req, res, next) {
 // Route 1: OTP bhejo
 // POST /api/auth/send-otp
 // Body: { phone: "9876543210", role: "user" ya "admin" }
-app.post('/api/auth/send-otp', (req, res) => {
+app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
     const { phone, role } = req.body;
 
     // Phone valid hai?
@@ -132,7 +159,7 @@ app.post('/api/auth/send-otp', (req, res) => {
 // POST /api/auth/verify-otp
 // Body: { phone, otp, fullName, role }
 app.post('/api/auth/verify-otp', (req, res) => {
-    const { phone, otp, fullName, role } = req.body;
+    const { phone, otp, fullName } = req.body;  // ❌ role NAHI lenge client se
 
     const stored = otpStore[phone];
 
@@ -152,18 +179,36 @@ app.post('/api/auth/verify-otp', (req, res) => {
         return res.status(400).json({ success: false, error: 'OTP galat hai.' });
     }
 
-    // Sab theek — OTP delete karo (ek baar use ho gaya)
+    // ✅✅✅ MAIN FIX: Client ka role IGNORE karo, server ka use karo ✅✅✅
+    const actualRole = stored.role;  // Ye send-otp step pe save hua tha
+    
+    // ✅ Extra security: Agar admin hai toh double-check karo
+    if (actualRole === 'admin' && !APPROVED_ADMINS.includes(phone)) {
+        delete otpStore[phone];
+        console.warn(`⚠️ Unauthorized admin attempt by ${phone}`);
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Unauthorized access attempt.' 
+        });
+    }
+
+    // Sab theek — OTP delete karo
     delete otpStore[phone];
 
-    // JWT token banao
-    // Admin ka token 30 din, student ka 12 ghante
-    const expiresIn = role === 'admin' ? '30d' : '30d';
-    const token = jwt.sign({ fullName, phone, role }, process.env.JWT_SECRET, { expiresIn });
+    // JWT token banao - actualRole use karo (NOT req.body.role)
+    const expiresIn = '30d';
+    const token = jwt.sign(
+        { fullName, phone, role: actualRole },  // ✅ Server-validated role
+        process.env.JWT_SECRET, 
+        { expiresIn }
+    );
+
+    console.log(`✅ Login successful: ${phone} as ${actualRole}`);
 
     res.json({
         success: true,
         token,
-        user: { fullName, phone, role }
+        user: { fullName, phone, role: actualRole }  // ✅ Correct role
     });
 });
 
