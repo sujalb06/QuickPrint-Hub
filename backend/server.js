@@ -55,7 +55,19 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + '-' + safeName);
     }
 });
-const upload = multer({ storage });
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 30 * 1024 * 1024 }, // 30MB limit
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /pdf|jpg|jpeg|png/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        
+        if (extname && mimetype) return cb(null, true);
+        cb(new Error("Sirf PDF aur Images allow hain!"));
+    }
+});
 
 // Database models
 const Order = require('./models/orders');
