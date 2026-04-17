@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 5000;
 const APPROVED_ADMINS = process.env.ADMIN_PHONES 
 ? process.env.ADMIN_PHONES.split(',').map(n => n.trim()) : [];
 
-console.log('✅ Approved admins:', APPROVED_ADMINS);
+// console.log('✅ Approved admins:', APPROVED_ADMINS);
 
 // OTP temporary yahan store hoga (memory mein, database mein nahi)
 // Server restart = sab OTPs delete
