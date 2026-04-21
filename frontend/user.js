@@ -195,7 +195,7 @@ function removeItem(id) {
 // PAYMENT — "Pay & Confirm" button click
 // Files + order data server pe bhejo
 // ============================================================
-async function processPayment() {
+async function submitFinalOrder() {
     const token  = localStorage.getItem('quickprint_token');
     const payBtn = document.getElementById('payNowBtn');
     const total  = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -312,4 +312,26 @@ async function fetchLiveQueue() {
     } catch (err) {
         console.error('Queue fetch error:', err);
     }
+}
+
+
+
+
+
+
+
+// Popup kholne ke liye
+function openPaymentModal() {
+    // Check kar lo ki cart khali toh nahi hai
+    if (Object.keys(cart).length === 0) {
+        alert("Cart is empty! Please upload a file.");
+        return;
+    }
+    // Popup show karo
+    document.getElementById('paymentModal').classList.remove('hidden');
+}
+
+// Popup band karne ke liye (back arrow)
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
 }

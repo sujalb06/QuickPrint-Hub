@@ -92,9 +92,7 @@
                         <p class="help-text">✅ WhatsApp updates will be sent to your registered number.</p>
                     </div>
                     <!-- Cart khali hone pe disabled rahega (JS se enable hoga) -->
-                    <button class="btn-success w-100" id="payNowBtn" onclick="processPayment()" disabled>
-                        Pay Securely & Confirm 💳
-                    </button>
+                    <button class="btn-success w-100" onclick="openPaymentModal()">Pay Securely</button>
                     <p class="secure-note">⚠️ Note: If not collected within 24 hours, order will be rejected. No refunds.</p>
                 </div>
             </div>
@@ -102,6 +100,42 @@
         </section>
  
     </main>
+
+
+    <div id="paymentModal" class="modal hidden">
+    <div class="modal-content payment-modal">
+        <div class="payment-header">
+            <span class="close-btn" onclick="closePaymentModal()">&#10094;</span>
+            <h3>Payments</h3>
+            <span></span> </div>
+        
+        <p class="payment-subtitle">Choose the payment method you'd like to use.</p>
+
+        <div class="payment-options">
+            
+            <label class="pay-option-card">
+                <div class="pay-info">
+                    <span class="pay-icon">🅖</span>
+                    <span class="pay-name">Google Pay</span>
+                </div>
+                <input type="radio" name="payMethod" value="gpay" checked>
+            </label>
+
+            <label class="pay-option-card">
+                <div class="pay-info">
+                    <span class="pay-icon" style="color: #5f259f;">₱</span>
+                    <span class="pay-name">PhonePe</span>
+                </div>
+                <input type="radio" name="payMethod" value="phonepe">
+            </label>
+
+        </div>
+
+        <button id="finalPayBtn" class="btn-primary w-100" style="margin-top: 15px; padding: 14px; border-radius: 10px;" onclick="submitFinalOrder()">
+            Pay Now
+        </button>
+    </div>
+</div>
  
  
     <!-- ============================================================
