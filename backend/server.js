@@ -155,7 +155,7 @@ app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
 
     // OTP banao aur store karo (5 minute ke liye valid)
     // TODO: Production mein real OTP use karo, "1234" hata dena
-    const otp = "1234";
+    const otp = "0102";
     otpStore[phone] = {
         otp,
         role,
@@ -391,16 +391,6 @@ cron.schedule('0 0 * * *', async () => {
         console.error('❌ Cleanup failed:', err);
     }
 });
-
-// Server ko jaagne rakho — Render free plan ke liye
-setInterval(async () => {
-    try {
-        await fetch('https://quickprint-hub.onrender.com/health');
-    } catch(e) {}
-}, 10 * 60 * 1000); // Har 10 minute mein
-
-// Health check route
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Server start karo
 app.listen(PORT, () => console.log(`🚀 Server chal raha hai: http://localhost:${PORT}`));
