@@ -140,7 +140,7 @@ function isAdmin(req, res, next) {
 // Route 1: OTP bhejo
 // POST /api/auth/send-otp
 // Body: { phone: "9876543210", role: "user" ya "admin" }
-app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
+app.post('/api/auth/send-otp', otpLimiter, (req, res) => {
     const { phone, role } = req.body;
 
     // Phone valid hai?
@@ -156,25 +156,14 @@ app.post('/api/auth/send-otp', otpLimiter, async (req, res) => {
     // OTP banao aur store karo (5 minute ke liye valid)
     // TODO: Production mein real OTP use karo, "1234" hata dena
     const otp = "1234";
-    // MessageCentral se OTP bhejo
-    const mcToken = process.env.MESSAGECENTRAL_TOKEN;
-    const mcUrl = `https://cpaas.messagecentral.com/verification/v3/send?countryCode=91&customerId=${process.env.MESSAGECENTRAL_CUSTOMER_ID}&flowType=SMS&mobileNumber=${phone}&otpLength=4&message=Your QuickPrint OTP is: ${otp}`;
-
-    try {
-        await fetch(mcUrl, {
-            method: 'POST',
-            headers: { 'authToken': mcToken }
-        });
-    } catch (e) {
-        console.error('MessageCentral error:', e);
-    }
-
     otpStore[phone] = {
         otp,
         role,
-        expiresAt: Date.now() + 5 * 60 * 1000
+        expiresAt: Date.now() + 5 * 60 * 1000 // 5 minute
     };
-    res.json({ success: true });
+
+    console.log(`📱 OTP for ${phone}: ${otp}`);
+    res.json({ success: true}); // Production mein 'otp' response se hata dena!
 });
 
 // Route 2: OTP verify karo aur token do
