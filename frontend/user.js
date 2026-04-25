@@ -202,69 +202,7 @@ async function processPayment() {
     document.getElementById('paymentModal').classList.remove('hidden');
     return; // Yahaan rok do — payVia() se aage chalega
 
-    const token  = localStorage.getItem('quickprint_token');
-    const payBtn = document.getElementById('payNowBtn');
-    const total  = cartItems.reduce((sum, item) => sum + item.price, 0);
-
-    // FormData use karo — files binary mein bhejni hain
-    const formData = new FormData();
-
-    // Order ka text data JSON mein
-    formData.append('orderData', JSON.stringify({
-        totalAmount: total,
-        filesConfig: cartItems.map(item => ({
-            fileName:         item.name,
-            totalPages:       item.pages,
-            copies:           item.copies,
-            colorType:        item.colorType,
-            printSide:        item.printSide,
-            priceForThisFile: item.price
-        }))
-    }));
-
-    // Actual files attach karo
-    cartItems.forEach(item => formData.append('actualFiles', item.fileObject));
-
-    payBtn.innerHTML = 'Uploading & Processing... ⏳';
-    payBtn.disabled  = true;
-
-    try {
-        const res = await fetch(`${BASE_URL}/api/orders`, {
-            method:  'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body:    formData
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            // Success modal mein order number dikhao
-            document.getElementById('displayOrderNumber').innerText = `#${data.orderSerial}`;
-
-            // Ready time estimate karo
-            let waitSeconds = 60;
-            cartItems.forEach(item => {
-                waitSeconds += 30 + (item.pages * item.copies * 2);
-            });
-            const queueMins = parseInt(document.getElementById('waitTime').innerText) || 0;
-
-            const readyTime = new Date();
-            readyTime.setMinutes(readyTime.getMinutes() + queueMins + Math.ceil(waitSeconds / 60));
-            document.getElementById('displayReadyTime').innerText =
-                readyTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            document.getElementById('successModal').classList.remove('hidden');
-
-        } else {
-            alert('Order error: ' + data.error);
-        }
-
-    } catch (err) {
-        alert('Server connection failed.');
-    } finally {
-        payBtn.innerHTML = 'Pay Securely & Confirm 💳';
-        payBtn.disabled  = false;
-    }
-}
+}    
 
 // Success modal band karo aur cart reset karo
 function closeModal() {
@@ -344,4 +282,60 @@ function payVia(method) {
 
 function closePaymentModal() {
     document.getElementById('paymentModal').classList.add('hidden');
+}
+
+
+async function submitOrder() {
+    const token  = localStorage.getItem('quickprint_token');
+    const payBtn = document.getElementById('payNowBtn');
+    const total  = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+    const formData = new FormData();
+    formData.append('orderData', JSON.stringify({
+        totalAmount: total,
+        filesConfig: cartItems.map(item => ({
+            fileName:         item.name,
+            totalPages:       item.pages,
+            copies:           item.copies,
+            colorType:        item.colorType,
+            printSide:        item.printSide,
+            priceForThisFile: item.price
+        }))
+    }));
+    cartItems.forEach(item => formData.append('actualFiles', item.fileObject));
+
+    payBtn.innerHTML = 'Uploading & Processing... ⏳';
+    payBtn.disabled  = true;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/orders`, {
+            method:  'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body:    formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('displayOrderNumber').innerText = `#${data.orderSerial}`;
+
+            let waitSeconds = 60;
+            cartItems.forEach(item => {
+                waitSeconds += 30 + (item.pages * item.copies * 2);
+            });
+            const queueMins = parseInt(document.getElementById('waitTime').innerText) || 0;
+            const readyTime = new Date();
+            readyTime.setMinutes(readyTime.getMinutes() + queueMins + Math.ceil(waitSeconds / 60));
+            document.getElementById('displayReadyTime').innerText =
+                readyTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('successModal').classList.remove('hidden');
+        } else {
+            alert('Order error: ' + data.error);
+        }
+    } catch (err) {
+        alert('Server connection failed.');
+    } finally {
+        payBtn.innerHTML = 'Pay Securely & Confirm 💳';
+        payBtn.disabled  = false;
+    }
 }
