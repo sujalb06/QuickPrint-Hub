@@ -196,6 +196,12 @@ function removeItem(id) {
 // Files + order data server pe bhejo
 // ============================================================
 async function processPayment() {
+    // Pehle payment modal dikhao
+    const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+    document.getElementById('paymentAmountDisplay').innerText = `₹${total.toFixed(2)}`;
+    document.getElementById('paymentModal').classList.remove('hidden');
+    return; // Yahaan rok do — payVia() se aage chalega
+
     const token  = localStorage.getItem('quickprint_token');
     const payBtn = document.getElementById('payNowBtn');
     const total  = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -312,4 +318,30 @@ async function fetchLiveQueue() {
     } catch (err) {
         console.error('Queue fetch error:', err);
     }
+}
+
+
+
+
+
+
+// Payment app kholo
+function payVia(method) {
+    const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+    
+    if (method === 'phonepe') {
+        // PhonePe UPI deep link
+        window.open(`phonepe://pay?pa=YOUR_UPI_ID&pn=QuickPrint&am=${total}&cu=INR`, '_blank');
+    } else {
+        // Google Pay UPI deep link  
+        window.open(`tez://upi/pay?pa=YOUR_UPI_ID&pn=QuickPrint&am=${total}&cu=INR`, '_blank');
+    }
+
+    // 2 second baad automatically order submit karo
+    document.getElementById('paymentModal').classList.add('hidden');
+    setTimeout(() => submitOrder(), 2000);
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
 }
